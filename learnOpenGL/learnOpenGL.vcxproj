@@ -148,6 +148,10 @@
   <ItemGroup>
     <ClInclude Include="include\glad\glad.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\simple.frag" />
+    <None Include="shader\simple.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
