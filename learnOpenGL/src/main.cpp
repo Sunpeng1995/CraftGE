@@ -11,6 +11,7 @@
 
 #include "stb_image.h"
 #include "Shader.h"
+#include "Camera.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -22,17 +23,16 @@ GLuint createTex(std::string path, GLenum format);
 
 float mixer = 0.2f;
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+float sWidth = 800.0f;
+float sHeight = 600.0f;
+
 bool firstMouse = true;
 float lastX, lastY;
-float pitch = 0.0f;
-float yaw = -90.0f;
-float fov = 45.0f;
+
+Camera camera(sWidth, sHeight);
 
 int main() {
   // init glfw
@@ -42,7 +42,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   // create a glfw window
-  GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(sWidth, sHeight, "LearnOpenGL", NULL, NULL);
   if (window == NULL) {
     std::cout << "Failed to create glfw window" << std::endl;
     glfwTerminate();
@@ -110,16 +110,8 @@ int main() {
     simpleShader.setInt("texture1", 1);
     simpleShader.setFloat("mixer", mixer);
 
-    float radius = 10.0f;
-    float camX = sin(glfwGetTime()) * radius;
-    float camZ = cos(glfwGetTime()) * radius;
-    glm::mat4 view;
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    glm::mat4 proj;
-    proj = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
-
-    simpleShader.setMat4("view", view);
-    simpleShader.setMat4("proj", proj);
+    simpleShader.setMat4("view", camera.view());
+    simpleShader.setMat4("proj", camera.projection());
 
     glBindVertexArray(VAO);
 
@@ -309,18 +301,17 @@ void processInput(GLFWwindow* window) {
   deltaTime = CurrentTime - lastFrame;
   lastFrame = CurrentTime;
 
-  float cameraSpeed = 2.5f * deltaTime;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-    cameraPos += cameraSpeed * cameraFront;
+    camera.changePos(CameraDirection::forward, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-    cameraPos -= cameraSpeed * cameraFront;
+    camera.changePos(CameraDirection::back, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-    cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+    camera.changePos(CameraDirection::left, deltaTime);
   }
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-    cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+    camera.changePos(CameraDirection::right, deltaTime);
   }
 }
 
@@ -335,33 +326,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
   lastX = xpos;
   lastY = ypos;
 
-  float sensitivity = 0.05f;
-  xoffset *= sensitivity;
-  yoffset *= sensitivity;
-
-  yaw += xoffset;
-  pitch += yoffset;
-
-  if (pitch > 89.0f) {
-    pitch = 89.0f;
-  }
-  if (pitch < -89.0f) {
-    pitch = -89.0f;
-  }
-
-  glm::vec3 front;
-  front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-  front.y = sin(glm::radians(pitch));
-  front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-  cameraFront = glm::normalize(front);
+  camera.changeDirection(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-  fov -= yoffset;
-  if (fov <= 1.0f) {
-    fov = 1.0f;
-  }
-  if (fov >= 60.0f) {
-    fov = 60.0f;
-  }
+  camera.changeZoom(yoffset);
 }
