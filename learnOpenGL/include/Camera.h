@@ -21,8 +21,8 @@ enum CameraDirection {
 
 class Camera {
 public:
-  Camera(float width, float height);
-  Camera(float width, float height, glm::vec3 initPos);
+  Camera(int width, int height);
+  Camera(int width, int height, glm::vec3 initPos);
 
   inline void bindShader(const Shader &shader) {
     shaders.push_back(&shader);
@@ -33,7 +33,7 @@ public:
   }
 
   inline glm::mat4 projection() {
-    return glm::perspective(glm::radians(fov), width / height, 0.1f, 100.0f);
+    return glm::perspective(glm::radians(fov), (float)width / height, 0.1f, 100.0f);
   }
 
   inline void updateScreen(float width, float height) {
@@ -44,12 +44,20 @@ public:
   void changePos(CameraDirection dir, float deltaTime);
   void changeDirection(float xoffset, float yoffset);
   void changeZoom(float yoffset);
+  void enableChangeDirection() {
+    canChangeDirection = true;
+  }
+  void disableChangeDirection() {
+    canChangeDirection = false;
+  }
 
 private:
-  float width, height;
+  int width, height;
   glm::vec3 pos, front, up;
   float pitch, yaw, fov;
   float cameraSpeed, sensitivity;
+  
+  bool canChangeDirection;
 
   std::vector<const Shader*> shaders;
 

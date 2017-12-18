@@ -1,16 +1,16 @@
 #include "Camera.h"
 
-Camera::Camera(float width, float height) : 
+Camera::Camera(int width, int height) : 
   Camera(width, height, glm::vec3(0.0f, 0.0f, 3.0f)) {
 
 }
 
-Camera::Camera(float width, float height, glm::vec3 initPos) :
+Camera::Camera(int width, int height, glm::vec3 initPos) :
   width(width), height(height),
   pos(initPos), front(glm::vec3(0.0f, 0.0f, -1.0f)), up(glm::vec3(0.0f, 1.0f, 0.0f)),
   pitch(0.0f), yaw(-90.0f), fov(45.0f), cameraSpeed(2.5f), sensitivity(0.05f)
 {
-
+  canChangeDirection = false;
 }
 
 void Camera::changePos(CameraDirection dir, float deltaTime) {
@@ -35,6 +35,9 @@ void Camera::changePos(CameraDirection dir, float deltaTime) {
 }
 
 void Camera::changeDirection(float xoffset, float yoffset) {
+  if (!canChangeDirection) {
+    return;
+  }
   yaw += xoffset * sensitivity;
   pitch += yoffset * sensitivity;
 
