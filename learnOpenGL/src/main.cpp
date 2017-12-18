@@ -18,6 +18,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+Scene* createBasicScene();
+Scene* createLightingScene();
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -27,6 +29,19 @@ float sHeight = 600.0f;
 
 bool firstMouse = true;
 float lastX, lastY;
+
+glm::vec3 cubePositions[] = {
+  glm::vec3(0.0f,  0.0f,  0.0f),
+  glm::vec3(2.0f,  5.0f, -15.0f),
+  glm::vec3(-1.5f, -2.2f, -2.5f),
+  glm::vec3(-3.8f, -2.0f, -12.3f),
+  glm::vec3(2.4f, -0.4f, -3.5f),
+  glm::vec3(-1.7f,  3.0f, -7.5f),
+  glm::vec3(1.3f, -2.0f, -2.5f),
+  glm::vec3(1.5f,  2.0f, -2.5f),
+  glm::vec3(1.5f,  0.2f, -1.5f),
+  glm::vec3(-1.3f,  1.0f, -1.5f)
+};
 
 Scene* scene;
 
@@ -56,42 +71,15 @@ int main() {
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetScrollCallback(window, scroll_callback);
 
-
-
-
-  scene = new Scene(sWidth, sHeight);
-
-  Texture* tex1 = new Texture("res/container.jpg", GL_RGB);
-  Texture* tex2 = new Texture("res/awesomeface.png", GL_RGBA);
-
   glEnable(GL_DEPTH_TEST);
 
-  glm::vec3 cubePositions[] = {
-    glm::vec3(0.0f,  0.0f,  0.0f),
-    glm::vec3(2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3(2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3(1.3f, -2.0f, -2.5f),
-    glm::vec3(1.5f,  2.0f, -2.5f),
-    glm::vec3(1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
-  };
-
-
-  for (int i = 0; i < 10; i++) {
-    Cube* cube = new Cube(cubePositions[i]);
-    cube->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
-    cube->addTexture(tex1);
-    cube->addTexture(tex2);
-    scene->addMesh(cube);
-  }
+  //scene = createBasicScene();
+  scene = createLightingScene();
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
 
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -107,6 +95,71 @@ int main() {
   return 0;
 }
 
+Scene* createBasicScene() {
+  Scene* basicScene = new Scene(sWidth, sHeight);
+
+  Texture* tex1 = new Texture("res/container.jpg", GL_RGB);
+  Texture* tex2 = new Texture("res/awesomeface.png", GL_RGBA);
+
+
+  for (int i = 0; i < 10; i++) {
+    Cube* cube = new Cube(cubePositions[i]);
+    cube->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+    cube->addTexture(tex1);
+    cube->addTexture(tex2);
+    basicScene->addMesh(cube);
+  }
+
+  return basicScene;
+}
+
+Scene* createLightingScene() {
+  Scene* lightingScene = new Scene(sWidth, sHeight);
+
+  auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
+  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+  Texture* tex1 = new Texture("res/container2.png", GL_RGBA);
+  Texture* tex2 = new Texture("res/container2_specular.png", GL_RGBA);
+
+  for (int i = 0; i < 10; i++) {
+    NormalledCube* obj = new NormalledCube(cubePositions[i]);
+    obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+    obj->addTexture(tex1);
+    obj->addTexture(tex2);
+    lightingScene->addMesh(obj);
+  }
+  lightingScene->setObjectShader(objectShader);
+
+  glm::vec3 ambient(0.1f, 0.1f, 0.1f);
+  glm::vec3 diffuse(0.5f, 0.5f, 0.5f);
+  glm::vec3 specular(1.0f, 1.0f, 1.0f);
+
+  glm::vec3 pointLightPositions[] = {
+    glm::vec3(0.7f,  0.2f,  2.0f),
+    glm::vec3(2.3f, -3.3f, -4.0f),
+    glm::vec3(-4.0f,  2.0f, -12.0f),
+    glm::vec3(0.0f,  0.0f, -3.0f)
+  };
+
+  auto dirLight = new DirLight(glm::vec3(-0.2f, -1.0f, -0.3f), ambient, diffuse, specular);
+  lightingScene->setDirLight(dirLight);
+
+  for (int i = 0; i < 4; i++) {
+    auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
+    Cube* light = new Cube(pointLightPositions[i]);
+    light->setScale(0.2f);
+    pointLight->setMesh(light);
+    lightingScene->addOtherLight(pointLight);
+  }
+
+  auto spotLight = new SpotLight(-1, lightingScene->getCamera().getPos(), lightingScene->getCamera().getFront(),
+    ambient, diffuse, specular, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f)));
+  lightingScene->setFlashLight(spotLight);
+
+  lightingScene->setLightingShader(lightingShader);
+
+  return lightingScene;
+}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);

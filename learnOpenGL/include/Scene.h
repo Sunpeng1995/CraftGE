@@ -9,6 +9,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Mesh.h"
+#include "Light.h"
 
 class Scene {
 public:
@@ -21,7 +22,14 @@ public:
   }
 
   void addMesh(Mesh* mesh);
+  void setLightingObject(Mesh* mesh);
+  void setObjectShader(Shader* shader);
+  void setLightingShader(Shader* shader);
   void draw();
+
+  void setDirLight(DirLight* light);
+  void setFlashLight(SpotLight* light);
+  void addOtherLight(Light* light);
 
   inline Camera& getCamera() {
     return *mCamera;
@@ -38,10 +46,16 @@ public:
 private:
   int mWidth, mHeight;
   Camera* mCamera;
-  Shader* mShader;
+  Shader* mShader, *mLightingShader;
 
   std::vector<Mesh*> mMeshes;
+  //Mesh* mLightingObj;
+  std::vector<Light*> mLights;
+  DirLight* mDirLight;
+  SpotLight* mFlashLight;
+
   void drawMeshes(Shader* shader);
+  void drawLightings(Shader* shader);
 };
 
 #endif // !__SCENE_H__

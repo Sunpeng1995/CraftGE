@@ -26,8 +26,6 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
   const char* vCode = vertexCode.c_str();
   const char* fCode = fragmentCode.c_str();
 
-
-
   unsigned int vertexShader, fragmentShader;
   int success;
   char infoLog[512];

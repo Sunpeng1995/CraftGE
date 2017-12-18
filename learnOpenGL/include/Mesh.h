@@ -18,6 +18,15 @@ public:
   virtual void draw(Shader* shader) = 0;
   void addTexture(Texture* tex);
   Texture* getTexture(int idx);
+
+  void setScale(float scale);
+  void setPos(glm::vec3 pos);
+  inline glm::vec3 getPos() {
+    return mPos;
+  }
+protected:
+  glm::vec3 mPos;
+  float mScale;
 private:
   std::vector<Texture*> mTextures;
 };
@@ -31,9 +40,20 @@ public:
   void setRotate(float angle, glm::vec3 axis);
 
 private:
-  glm::vec3 mPos;
   GLuint mVAO;
+  float mRotateAngle;
+  glm::vec3 mRotateAxis;
+};
 
+class NormalledCube : public Mesh {
+public:
+  NormalledCube();
+  NormalledCube(glm::vec3 pos);
+
+  virtual void draw(Shader* shader);
+  void setRotate(float angle, glm::vec3 axis);
+private:
+  GLuint mVAO;
   float mRotateAngle;
   glm::vec3 mRotateAxis;
 };

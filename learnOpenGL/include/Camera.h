@@ -51,6 +51,14 @@ public:
     canChangeDirection = false;
   }
 
+  inline glm::vec3 getPos() {
+    return pos;
+  }
+
+  inline glm::vec3 getFront() {
+    return front;
+  }
+
 private:
   int width, height;
   glm::vec3 pos, front, up;
