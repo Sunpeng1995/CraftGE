@@ -3,6 +3,7 @@
 Scene::Scene(int width, int height) : mWidth(width), mHeight(height) {
   mCamera = new Camera(width, height);
   mShader = new Shader("shader/simple.vert", "shader/simple.frag");
+  mSkybox = nullptr;
   mLightingShader = nullptr;
   mFlashLight = nullptr;
   mDirLight = nullptr;
@@ -22,6 +23,10 @@ Scene::~Scene() {
 
 void Scene::addMesh(Mesh* mesh) {
   mMeshes.push_back(mesh);
+}
+
+void Scene::addModel(Model* model) {
+  mModels.push_back(model);
 }
 
 void Scene::setLightingObject(Mesh* mesh) {
@@ -52,6 +57,12 @@ void Scene::setFlashLight(SpotLight* light) {
   if (old) delete old;
 }
 
+void Scene::setSkybox(Skybox* skybox) {
+  Skybox* old = mSkybox;
+  mSkybox = skybox;
+  if (old) delete old;
+}
+
 void Scene::addOtherLight(Light* light) {
   mLights.push_back(light);
 }
@@ -59,6 +70,9 @@ void Scene::addOtherLight(Light* light) {
 void Scene::draw() {
   drawLightings(mLightingShader);
   drawMeshes(mShader);
+  if (mSkybox) {
+    mSkybox->draw(mCamera);
+  }
 }
 
 void Scene::drawMeshes(Shader* shader) {
@@ -94,12 +108,16 @@ void Scene::drawMeshes(Shader* shader) {
     l->passToShader(shader);
   }
 
-  if (mFlashLight) {
+  if (mFlashLight && enableFlashLight) {
     mFlashLight->updateFlashLight(mCamera->getPos(), mCamera->getFront());
     mFlashLight->passToShader(shader);
   }
 
   for (auto m : mMeshes) {
+    m->draw(shader);
+  }
+
+  for (auto m : mModels) {
     m->draw(shader);
   }
 }

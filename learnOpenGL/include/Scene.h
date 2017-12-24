@@ -10,6 +10,8 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "Light.h"
+#include "Model.h"
+#include "Skybox.h"
 
 class Scene {
 public:
@@ -22,9 +24,11 @@ public:
   }
 
   void addMesh(Mesh* mesh);
+  void addModel(Model* model);
   void setLightingObject(Mesh* mesh);
   void setObjectShader(Shader* shader);
   void setLightingShader(Shader* shader);
+  void setSkybox(Skybox* skybox);
   void draw();
 
   void setDirLight(DirLight* light);
@@ -43,12 +47,19 @@ public:
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
+  inline void switchFlashLight(bool enable) {
+    enableFlashLight = enable;
+  }
+
 private:
+  bool enableFlashLight = true;
   int mWidth, mHeight;
   Camera* mCamera;
   Shader* mShader, *mLightingShader;
+  Skybox* mSkybox;
 
   std::vector<Mesh*> mMeshes;
+  std::vector<Model*> mModels;
   //Mesh* mLightingObj;
   std::vector<Light*> mLights;
   DirLight* mDirLight;

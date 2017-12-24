@@ -6,7 +6,7 @@ Camera::Camera(int width, int height) :
 }
 
 Camera::Camera(int width, int height, glm::vec3 initPos) :
-  width(width), height(height),
+  screenWidth(width), screenHeight(height),
   pos(initPos), front(glm::vec3(0.0f, 0.0f, -1.0f)), up(glm::vec3(0.0f, 1.0f, 0.0f)),
   pitch(0.0f), yaw(-90.0f), fov(45.0f), cameraSpeed(2.5f), sensitivity(0.05f)
 {

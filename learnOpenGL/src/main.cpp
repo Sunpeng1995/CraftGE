@@ -13,6 +13,8 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Scene.h"
+#include "Model.h"
+#include "Skybox.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -20,12 +22,14 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 Scene* createBasicScene();
 Scene* createLightingScene();
+Scene* createModelScene();
+Scene* createNormalScene();
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-float sWidth = 800.0f;
-float sHeight = 600.0f;
+float sWidth = 1280.0f;
+float sHeight = 720.0f;
 
 bool firstMouse = true;
 float lastX, lastY;
@@ -43,7 +47,9 @@ glm::vec3 cubePositions[] = {
   glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
-Scene* scene;
+Scene* scene, *basicScene, *lightingScene, *normalScene, *modelScene;
+int currentScene = 1;
+bool isNormal = true;
 
 int main() {
   // init glfw
@@ -51,6 +57,8 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  glfwWindowHint(GLFW_SAMPLES, 4);
 
   // create a glfw window
   GLFWwindow* window = glfwCreateWindow(sWidth, sHeight, "LearnOpenGL", NULL, NULL);
@@ -66,15 +74,19 @@ int main() {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
-  glViewport(0, 0, 800, 600);
+  glViewport(0, 0, sWidth, sHeight);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetScrollCallback(window, scroll_callback);
 
   glEnable(GL_DEPTH_TEST);
 
-  //scene = createBasicScene();
-  scene = createLightingScene();
+  basicScene = createBasicScene();
+  lightingScene = createLightingScene();
+  normalScene = createNormalScene();
+  modelScene = createModelScene();
+
+  scene = basicScene;
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
@@ -98,11 +110,13 @@ int main() {
 Scene* createBasicScene() {
   Scene* basicScene = new Scene(sWidth, sHeight);
 
-  Texture* tex1 = new Texture("res/container.jpg", GL_RGB);
-  Texture* tex2 = new Texture("res/awesomeface.png", GL_RGBA);
+  Texture tex1("res/container.jpg", "normal");
+  Texture tex2("res/awesomeface.png", "normal");
+
+  basicScene->setSkybox(new Skybox("res/skybox"));
 
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 1; i++) {
     Cube* cube = new Cube(cubePositions[i]);
     cube->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
     cube->addTexture(tex1);
@@ -118,8 +132,8 @@ Scene* createLightingScene() {
 
   auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-  Texture* tex1 = new Texture("res/container2.png", GL_RGBA);
-  Texture* tex2 = new Texture("res/container2_specular.png", GL_RGBA);
+  Texture tex1("res/container2.png", "texture_diffuse");
+  Texture tex2("res/container2_specular.png", "texture_specular");
 
   for (int i = 0; i < 10; i++) {
     NormalledCube* obj = new NormalledCube(cubePositions[i]);
@@ -155,6 +169,98 @@ Scene* createLightingScene() {
   auto spotLight = new SpotLight(-1, lightingScene->getCamera().getPos(), lightingScene->getCamera().getFront(),
     ambient, diffuse, specular, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f)));
   lightingScene->setFlashLight(spotLight);
+
+  lightingScene->setLightingShader(lightingShader);
+
+  return lightingScene;
+}
+
+Scene* createModelScene() {
+  auto ModelScene = new Scene(sWidth, sHeight);
+
+  auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
+  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+
+  //Model* nanosuit = new Model("obj/nanosuit/nanosuit.obj");
+  //nanosuit->setPosition(glm::vec3(0.0f, -1.0f, 0.0f));
+  //nanosuit->setScale(0.1f);
+  //ModelScene->addModel(nanosuit);
+
+  Model* cruiser = new Model("obj/cruiser/cruiser.obj");
+  cruiser->setPosition(glm::vec3(2.0f, 0.0f, 0.0f));
+  ModelScene->addModel(cruiser);
+
+  Model* f16 = new Model("obj/f16/f16.obj");
+  f16->setPosition(glm::vec3(-2.0f, 0.0f, 0.0f));
+  ModelScene->addModel(f16);
+
+  ModelScene->setObjectShader(objectShader);
+
+  glm::vec3 ambient(0.1f, 0.1f, 0.1f);
+  glm::vec3 diffuse(0.5f, 0.5f, 0.5f);
+  glm::vec3 specular(1.0f, 1.0f, 1.0f);
+
+  glm::vec3 pointLightPositions[] = {
+    glm::vec3(0.7f,  0.2f,  2.0f),
+    glm::vec3(2.3f, -3.3f, -4.0f),
+    glm::vec3(-4.0f,  2.0f, -12.0f),
+    glm::vec3(0.0f,  0.0f, -3.0f)
+  };
+
+  auto dirLight = new DirLight(glm::vec3(-0.2f, -1.0f, -0.3f), ambient, diffuse, specular);
+  ModelScene->setDirLight(dirLight);
+
+  for (int i = 0; i < 4; i++) {
+    auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
+    Cube* light = new Cube(pointLightPositions[i]);
+    light->setScale(0.2f);
+    pointLight->setMesh(light);
+    ModelScene->addOtherLight(pointLight);
+  }
+
+  ModelScene->setLightingShader(lightingShader);
+
+  return ModelScene;
+}
+
+Scene* createNormalScene() {
+  Scene* lightingScene = new Scene(sWidth, sHeight);
+
+  auto objectShader = new Shader("shader/object_n.vert", "shader/object_n.frag");
+  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+  Texture tex1("res/brick_d.jpg", "texture_diffuse");
+  Texture tex2("res/brick_n.jpg", "texture_normal");
+
+  for (int i = 0; i < 10; i++) {
+    NormalledCube* obj = new NormalledCube(cubePositions[i]);
+    obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+    obj->addTexture(tex1);
+    obj->addTexture(tex2);
+    lightingScene->addMesh(obj);
+  }
+  lightingScene->setObjectShader(objectShader);
+
+  glm::vec3 ambient(0.1f, 0.1f, 0.1f);
+  glm::vec3 diffuse(0.5f, 0.5f, 0.5f);
+  glm::vec3 specular(1.0f, 1.0f, 1.0f);
+
+  glm::vec3 pointLightPositions[] = {
+    glm::vec3(0.7f,  0.2f,  2.0f),
+    glm::vec3(2.3f, -3.3f, -4.0f),
+    glm::vec3(-4.0f,  2.0f, -12.0f),
+    glm::vec3(0.0f,  0.0f, -3.0f)
+  };
+
+  auto dirLight = new DirLight(glm::vec3(-0.2f, -1.0f, -0.3f), ambient, diffuse, specular);
+  lightingScene->setDirLight(dirLight);
+
+  for (int i = 0; i < 4; i++) {
+    auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
+    Cube* light = new Cube(pointLightPositions[i]);
+    light->setScale(0.2f);
+    pointLight->setMesh(light);
+    lightingScene->addOtherLight(pointLight);
+  }
 
   lightingScene->setLightingShader(lightingShader);
 
@@ -200,6 +306,32 @@ void processInput(GLFWwindow* window) {
   }
   if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
     scene->setFillModeOn();
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS && currentScene != 1) {
+    scene = basicScene;
+    currentScene = 1;
+  }
+  if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS && currentScene != 2) {
+    scene = lightingScene;
+    currentScene = 2;
+  }
+  if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS && currentScene != 3) {
+    scene = normalScene;
+    currentScene = 3;
+  }
+  if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS && currentScene != 4) {
+    scene = modelScene;
+    currentScene = 4;
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && currentScene == 3) {
+    auto objectShader = new Shader("shader/object_n.vert", "shader/object_n.frag");
+    scene->setObjectShader(objectShader);
+  }
+  if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS && currentScene == 3) {
+    auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
+    scene->setObjectShader(objectShader);
   }
 }
 

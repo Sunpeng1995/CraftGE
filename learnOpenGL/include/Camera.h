@@ -33,12 +33,12 @@ public:
   }
 
   inline glm::mat4 projection() {
-    return glm::perspective(glm::radians(fov), (float)width / height, 0.1f, 100.0f);
+    return glm::perspective(glm::radians(fov), (float)screenWidth / screenHeight, 0.1f, 100.0f);
   }
 
   inline void updateScreen(float width, float height) {
-    this->width = width;
-    this->height = height;
+    this->screenWidth = width;
+    this->screenHeight = height;
   }
 
   void changePos(CameraDirection dir, float deltaTime);
@@ -60,7 +60,7 @@ public:
   }
 
 private:
-  int width, height;
+  int screenWidth, screenHeight;
   glm::vec3 pos, front, up;
   float pitch, yaw, fov;
   float cameraSpeed, sensitivity;

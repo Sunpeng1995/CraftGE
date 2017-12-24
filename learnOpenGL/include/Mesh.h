@@ -13,22 +13,36 @@
 #include "Shader.h"
 #include "Texture.h"
 
+struct Vertex {
+  glm::vec3 Position;
+  glm::vec3 Normal;
+  glm::vec2 TexCoords;
+};
+
 class Mesh {
 public:
-  virtual void draw(Shader* shader) = 0;
-  void addTexture(Texture* tex);
-  Texture* getTexture(int idx);
+  Mesh();
+  Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+  virtual void draw(Shader* shader);
+  void addTexture(Texture tex);
 
   void setScale(float scale);
   void setPos(glm::vec3 pos);
+
   inline glm::vec3 getPos() {
     return mPos;
+  }
+  inline float getScale() {
+    return mScale;
   }
 protected:
   glm::vec3 mPos;
   float mScale;
+  std::vector<Vertex> mVertices;
+  std::vector<unsigned int> mIndices;
+  std::vector<Texture> mTextures;
 private:
-  std::vector<Texture*> mTextures;
+  unsigned int mVAO, mVBO, mEBO;
 };
 
 class Cube : public Mesh {

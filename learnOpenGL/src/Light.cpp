@@ -66,7 +66,7 @@ SpotLight::SpotLight(int id, glm::vec3 position, glm::vec3 direction, glm::vec3 
   mCutOff(cutoff), mOuterCutOff(outercutoff) 
 {
   if (id >= 0) {
-    mName = std::string("spotLight[");
+    mName = std::string("spotLights[");
     auto num = std::to_string(id);
     mName.append(num);
     mName.append("].");
