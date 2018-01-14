@@ -24,6 +24,8 @@ Scene* createBasicScene();
 Scene* createLightingScene();
 Scene* createModelScene();
 Scene* createNormalScene();
+Scene* createShadowScene();
+Scene* createPointShadowScene();
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -47,7 +49,7 @@ glm::vec3 cubePositions[] = {
   glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
-Scene* scene, *basicScene, *lightingScene, *normalScene, *modelScene;
+Scene* scene, *basicScene, *lightingScene, *normalScene, *modelScene, *shadowScene, *pointShadowScene;
 int currentScene = 1;
 bool isNormal = true;
 
@@ -80,11 +82,14 @@ int main() {
   glfwSetScrollCallback(window, scroll_callback);
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
   basicScene = createBasicScene();
   lightingScene = createLightingScene();
   normalScene = createNormalScene();
   modelScene = createModelScene();
+  shadowScene = createShadowScene();
+  pointShadowScene = createPointShadowScene();
 
   scene = basicScene;
 
@@ -140,6 +145,7 @@ Scene* createLightingScene() {
     obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
     obj->addTexture(tex1);
     obj->addTexture(tex2);
+    obj->setScale(0.5f);
     lightingScene->addMesh(obj);
   }
   lightingScene->setObjectShader(objectShader);
@@ -162,7 +168,7 @@ Scene* createLightingScene() {
     auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
     Cube* light = new Cube(pointLightPositions[i]);
     light->setScale(0.2f);
-    pointLight->setMesh(light);
+    pointLight->setLightMesh(light);
     lightingScene->addOtherLight(pointLight);
   }
 
@@ -214,7 +220,7 @@ Scene* createModelScene() {
     auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
     Cube* light = new Cube(pointLightPositions[i]);
     light->setScale(0.2f);
-    pointLight->setMesh(light);
+    pointLight->setLightMesh(light);
     ModelScene->addOtherLight(pointLight);
   }
 
@@ -236,6 +242,7 @@ Scene* createNormalScene() {
     obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
     obj->addTexture(tex1);
     obj->addTexture(tex2);
+    obj->setScale(0.5f);
     lightingScene->addMesh(obj);
   }
   lightingScene->setObjectShader(objectShader);
@@ -258,13 +265,94 @@ Scene* createNormalScene() {
     auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
     Cube* light = new Cube(pointLightPositions[i]);
     light->setScale(0.2f);
-    pointLight->setMesh(light);
+    pointLight->setLightMesh(light);
     lightingScene->addOtherLight(pointLight);
   }
 
   lightingScene->setLightingShader(lightingShader);
 
   return lightingScene;
+}
+
+Scene* createShadowScene() {
+  Scene* shadowScene = new Scene(sWidth, sHeight);
+  auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
+  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+  Texture tex1("res/wood.png", "texture_diffuse");
+  Texture tex2("res/wood.png", "texture_specular");
+
+  glm::vec3 cubepos[] = {
+    glm::vec3(0.0f, 1.5f, 0.0f),
+    glm::vec3(2.0f, 0.0f, 1.0f),
+    glm::vec3(-1.0f, 0.0f, 2.0f)
+  };
+
+  for (int i = 0; i < 3; i++) {
+    NormalledCube* obj = new NormalledCube(cubepos[i]);
+    //obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+    obj->addTexture(tex1);
+    obj->addTexture(tex2);
+    obj->setScale(0.25f);
+    if (i == 2) {
+      obj->setScale(0.125f);
+    }
+    shadowScene->addMesh(obj);
+  }
+  Plane* plane = new Plane(glm::vec3(0.0f, 0.25f, 0.0f));
+  plane->addTexture(tex1);
+  //plane->addTexture(tex2);
+  shadowScene->addMesh(plane);
+  shadowScene->setObjectShader(objectShader);
+
+  auto dirLight = new DirLight(glm::vec3(2.0f, -4.0f, 1.0f));
+  shadowScene->setDirLight(dirLight);
+  shadowScene->setLightingShader(lightingShader);
+
+  shadowScene->enableShadow(Scene::ShadowType::parallel);
+
+  return shadowScene;
+}
+
+Scene* createPointShadowScene() {
+  auto pointShadowScene = new Scene(sWidth, sHeight);
+  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+  Texture tex1("res/wood.png", "texture_diffuse");
+  Texture tex2("res/wood.png", "texture_specular");
+
+  glm::vec3 cubepos[] = {
+    glm::vec3(4.0f, -3.5f, 0.0f),
+    glm::vec3(2.0f, 3.0f, 1.0f),
+    glm::vec3(-3.0f, -1.0f, 0.0f),
+    glm::vec3(-1.5f, 1.0f, 1.5f),
+    glm::vec3(-1.5f, 2.0f, -3.0f)
+  };
+
+  auto room = new NormalledCube(glm::vec3(0.0f, 0.0f, 0.0f));
+  room->addTexture(tex1);
+  room->addTexture(tex2);
+  room->setScale(5.0f);
+  room->setReverse(true);
+  pointShadowScene->addMesh(room);
+
+  for (int i = 0; i < 5; i++) {
+    NormalledCube* obj = new NormalledCube(cubepos[i]);
+    //obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+    obj->addTexture(tex1);
+    obj->addTexture(tex2);
+    obj->setScale(0.5f);
+    if (i == 1 || i == 4) {
+      obj->setScale(0.75f);
+    }
+    pointShadowScene->addMesh(obj);
+  }
+
+  auto pointLight = new PointLight(-1, glm::vec3(0.0f, 1.0f, 0.0f));
+  pointShadowScene->addOtherLight(pointLight);
+  pointShadowScene->setLightingShader(lightingShader);
+
+  pointShadowScene->enableShadow(Scene::ShadowType::point);
+
+  return pointShadowScene;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -323,6 +411,14 @@ void processInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS && currentScene != 4) {
     scene = modelScene;
     currentScene = 4;
+  }
+  if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS && currentScene != 5) {
+    scene = shadowScene;
+    currentScene = 5;
+  }
+  if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS && currentScene != 6) {
+    scene = pointShadowScene;
+    currentScene = 6;
   }
 
   if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && currentScene == 3) {

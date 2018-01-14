@@ -59,6 +59,13 @@ public:
     return front;
   }
 
+  inline int scrWidth() {
+    return screenWidth;
+  }
+  inline int scrHeight() {
+    return screenHeight;
+  }
+
 private:
   int screenWidth, screenHeight;
   glm::vec3 pos, front, up;

@@ -66,10 +66,24 @@ public:
 
   virtual void draw(Shader* shader);
   void setRotate(float angle, glm::vec3 axis);
+  void setReverse(bool r) {
+    mReverse = r;
+  }
 private:
+  bool mReverse = false;
   GLuint mVAO;
   float mRotateAngle;
   glm::vec3 mRotateAxis;
+};
+
+class Plane : public Mesh {
+public:
+  Plane();
+  Plane(glm::vec3 pos);
+
+  virtual void draw(Shader* shader);
+private:
+  GLuint mVAO;
 };
 
 #endif // !__MESH_H__

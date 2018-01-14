@@ -10,7 +10,14 @@
 
 class Texture {
 public:
+  enum WrapType {
+    Repeat,
+    Mirrored_Repeat,
+    Clamp
+  };
+
   Texture(std::string filepath, std::string type);
+  Texture(std::string filepath, std::string type, WrapType wraptype);
 
   inline GLuint getTextureID() {
     return mTex;
