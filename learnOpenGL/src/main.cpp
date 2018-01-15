@@ -237,15 +237,21 @@ Scene* createNormalScene() {
   Texture tex1("res/brick_d.jpg", "texture_diffuse");
   Texture tex2("res/brick_n.jpg", "texture_normal");
 
-  for (int i = 0; i < 10; i++) {
-    NormalledCube* obj = new NormalledCube(cubePositions[i]);
-    obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
-    obj->addTexture(tex1);
-    obj->addTexture(tex2);
-    obj->setScale(0.5f);
-    lightingScene->addMesh(obj);
-  }
+  //for (int i = 0; i < 10; i++) {
+  //  NormalledCube* obj = new NormalledCube(cubePositions[i]);
+  //  obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+  //  obj->addTexture(tex1);
+  //  obj->addTexture(tex2);
+  //  obj->setScale(0.5f);
+  //  lightingScene->addMesh(obj);
+  //}
   lightingScene->setObjectShader(objectShader);
+
+  for (int i = 0; i < 10; i++) {
+    Model* m = new Model("obj/normalcube/cube.obj");
+    m->setPosition(cubePositions[i]);
+    lightingScene->addModel(m);
+  }
 
   glm::vec3 ambient(0.1f, 0.1f, 0.1f);
   glm::vec3 diffuse(0.5f, 0.5f, 0.5f);
