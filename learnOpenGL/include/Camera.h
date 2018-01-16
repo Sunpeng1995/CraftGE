@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Object.h"
 #include "Shader.h"
 
 enum CameraDirection {
@@ -19,7 +20,12 @@ enum CameraDirection {
   right
 };
 
-class Camera {
+enum CameraType {
+  ortho,
+  perspective
+};
+
+class Camera :public Object {
 public:
   Camera(int width, int height);
   Camera(int width, int height, glm::vec3 initPos);
@@ -29,7 +35,7 @@ public:
   }
 
   inline glm::mat4 view() {
-    return glm::lookAt(pos, pos + front, up);
+    return glm::lookAt(mPosition, mPosition + mForward, mUp);
   }
 
   inline glm::mat4 projection() {
@@ -44,6 +50,7 @@ public:
   void changePos(CameraDirection dir, float deltaTime);
   void changeDirection(float xoffset, float yoffset);
   void changeZoom(float yoffset);
+
   void enableChangeDirection() {
     canChangeDirection = true;
   }
@@ -52,11 +59,11 @@ public:
   }
 
   inline glm::vec3 getPos() {
-    return pos;
+    return mPosition;
   }
 
   inline glm::vec3 getFront() {
-    return front;
+    return mForward;
   }
 
   inline int scrWidth() {
@@ -68,8 +75,7 @@ public:
 
 private:
   int screenWidth, screenHeight;
-  glm::vec3 pos, front, up;
-  float pitch, yaw, fov;
+  float fov;
   float cameraSpeed, sensitivity;
   
   bool canChangeDirection;

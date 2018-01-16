@@ -1,14 +1,16 @@
 #include "Camera.h"
 
+using namespace glm;
+
 Camera::Camera(int width, int height) : 
-  Camera(width, height, glm::vec3(0.0f, 0.0f, 3.0f)) {
+  Camera(width, height, vec3(0.0f, 0.0f, 3.0f)) {
 
 }
 
-Camera::Camera(int width, int height, glm::vec3 initPos) :
+Camera::Camera(int width, int height, vec3 initPos) :
+  Object(initPos, vec3(0, -90.0f, 0)), 
   screenWidth(width), screenHeight(height),
-  pos(initPos), front(glm::vec3(0.0f, 0.0f, -1.0f)), up(glm::vec3(0.0f, 1.0f, 0.0f)),
-  pitch(0.0f), yaw(-90.0f), fov(45.0f), cameraSpeed(2.5f), sensitivity(0.05f)
+  fov(45.0f), cameraSpeed(2.5f), sensitivity(0.05f)
 {
   canChangeDirection = false;
 }
@@ -18,16 +20,16 @@ void Camera::changePos(CameraDirection dir, float deltaTime) {
   switch (dir)
   {
   case forward:
-    pos += speed * front;
+    mPosition += speed * mForward;
     break;
   case back:
-    pos -= speed * front;
+    mPosition -= speed * mForward;
     break;
   case left:
-    pos -= speed *glm::normalize(glm::cross(front, up));
+    mPosition -= speed * mRight;
     break;
   case right:
-    pos += speed *glm::normalize(glm::cross(front, up));
+    mPosition += speed * mRight;
     break;
   default:
     break;
@@ -38,21 +40,22 @@ void Camera::changeDirection(float xoffset, float yoffset) {
   if (!canChangeDirection) {
     return;
   }
-  yaw += xoffset * sensitivity;
-  pitch += yoffset * sensitivity;
+  mRotation.y += xoffset * sensitivity;
+  mRotation.x += yoffset * sensitivity;
 
-  if (pitch > 89.0f) {
-    pitch = 89.0f;
+  if (mRotation.x > 89.0f) {
+    mRotation.x = 89.0f;
   }
-  if (pitch < -89.0f) {
-    pitch = -89.0f;
+  if (mRotation.x < -89.0f) {
+    mRotation.x = -89.0f;
   }
 
-  glm::vec3 newFront;
-  newFront.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-  newFront.y = sin(glm::radians(pitch));
-  newFront.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-  front = glm::normalize(newFront);
+  vec3 newFront;
+  newFront.x = cos(radians(mRotation.x)) * cos(radians(mRotation.y));
+  newFront.y = sin(radians(mRotation.x));
+  newFront.z = cos(radians(mRotation.x)) * sin(radians(mRotation.y));
+  mForward = normalize(newFront);
+  mRight = normalize(cross(mForward, mUp));
 }
 
 void Camera::changeZoom(float yoffset) {
