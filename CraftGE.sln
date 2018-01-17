@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "learnOpenGL", "learnOpenGL\learnOpenGL.vcxproj", "{FF8889C6-3390-4AB0-9914-E8983393B9BC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CraftGE", "CraftGE\CraftGE.vcxproj", "{FF8889C6-3390-4AB0-9914-E8983393B9BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
