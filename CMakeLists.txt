@@ -25,6 +25,8 @@ if (WIN32)
   file(GLOB PROJECT_LINK_DLLS "lib/*.dll")
   file(COPY ${PROJECT_LINK_DLLS}
           DESTINATION ${PROJECT_BINARY_DIR}/Debug)
+else()
+  file(GLOB PROJECT_LINK_LIBS "lib/*.so")
 endif()
 
 if (WIN32)
