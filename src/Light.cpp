@@ -1,10 +1,13 @@
 #include "Light.h"
 
+using namespace glm;
+
 Light::Light() : Light(glm::vec3(0.2f), glm::vec3(0.5f), glm::vec3(1.0f)) {
 
 }
 
 Light::Light(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular) :
+  Object(vec3(0, 0, 0)),
   mAmbient(ambient), mDiffuse(diffuse), mSpecular(specular), mLightMesh(nullptr)
 {
 
@@ -41,22 +44,25 @@ void Light::setSpecular(float x, float y, float z) {
 
 /////////////////////////////////////////////
 
-DirLight::DirLight(glm::vec3 direction) : Light(), mDirection(direction), mPosition(direction * -1.0f) {
-
+DirLight::DirLight(glm::vec3 direction) : 
+  DirLight(direction, vec3(0.2f), vec3(0.5f),vec3(1.0f))
+{
 }
 
 DirLight::DirLight(glm::vec3 direction, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular) :
-  Light(ambient, diffuse, specular), mDirection(direction), mPosition(direction * -1.0f)
+  Light(ambient, diffuse, specular)
 {
-
+  mPosition = direction * -1.0f;
+  setDirection(direction);
 }
 
 void DirLight::setDirection(glm::vec3 direction) {
   mDirection = direction;
+  setForward(direction);
 }
 
 void DirLight::setDirection(float x, float y, float z) {
-  mDirection = glm::vec3(x, y, z);
+  setDirection(vec3(x, y, z));
 }
 
 void DirLight::passToShader(Shader* shader) {
@@ -84,8 +90,9 @@ PointLight::PointLight(int id, glm::vec3 position) :
 
 PointLight::PointLight(int id, glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
   float constant, float linear, float quadratic) :
-  Light(ambient, diffuse, specular), mID(id), mPosition(position), mConstant(constant), mLinear(linear), mQuadratic(quadratic)
+  Light(ambient, diffuse, specular), mID(id), mConstant(constant), mLinear(linear), mQuadratic(quadratic)
 {
+  mPosition = position;
   if (id >= 0) {
     mName = std::string("pointLights[");
     auto num = std::to_string(id);
@@ -95,14 +102,6 @@ PointLight::PointLight(int id, glm::vec3 position, glm::vec3 ambient, glm::vec3 
   else {
     mName = std::string("pointLight.");
   }
-}
-
-void PointLight::setPosition(glm::vec3 pos) {
-  mPosition = pos;
-}
-
-void PointLight::setPosition(float x, float y, float z) {
-  mPosition = glm::vec3(x, y, z);
 }
 
 void PointLight::setConstant(float constant) {
@@ -133,21 +132,23 @@ void PointLight::draw(Shader* shader) {
   }
 }
 
+///////////////////////////////////////
+
 SpotLight::SpotLight(int id) :
   SpotLight(id, glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f))) 
 {}
 
 SpotLight::SpotLight(int id, glm::vec3 position, glm::vec3 direction, float cutoff, float outercutoff) :
-  Light(), mID(id), mPosition(position), mDirection(position), mCutOff(cutoff), mOuterCutOff(outercutoff) 
+  SpotLight(id, position, direction,vec3(0.2f),vec3(0.5f), vec3(1.0f), cutoff, outercutoff)
 {
-
 }
 
 SpotLight::SpotLight(int id, glm::vec3 position, glm::vec3 direction, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
   float cutoff, float outercutoff) :
-  Light(ambient, diffuse, specular), mID(id), mPosition(position), mDirection(direction),
+  Light(ambient, diffuse, specular), mID(id), mDirection(direction),
   mCutOff(cutoff), mOuterCutOff(outercutoff) 
 {
+  mPosition = position;
   if (id >= 0) {
     mName = std::string("spotLights[");
     auto num = std::to_string(id);
@@ -159,20 +160,13 @@ SpotLight::SpotLight(int id, glm::vec3 position, glm::vec3 direction, glm::vec3 
   }
 }
 
-void SpotLight::setPosition(glm::vec3 pos) {
-  mPosition = pos;
-}
-
-void SpotLight::setPosition(float x, float y, float z) {
-  mPosition = glm::vec3(x, y, z);
-}
-
 void SpotLight::setDirection(glm::vec3 dir) {
   mDirection = dir;
+  setForward(dir);
 }
 
 void SpotLight::setDirection(float x, float y, float z) {
-  mDirection = glm::vec3(x, y, z);
+  setDirection(vec3(x, y, z));
 }
 
 void SpotLight::setCutOff(float cutoff) {
@@ -198,6 +192,6 @@ void SpotLight::draw(Shader* shader) {
 }
 
 void SpotLight::updateFlashLight(glm::vec3 position, glm::vec3 direction) {
-  mPosition = position;
-  mDirection = direction;
+  setPosition(position);
+  setDirection(direction);
 }

@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Object.h"
 #include "Shader.h"
 #include "Texture.h"
 
@@ -20,25 +21,20 @@ struct Vertex {
   glm::vec3 Tangent;
 };
 
-class Mesh {
+class Mesh :public Object {
 public:
   Mesh();
   Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
   virtual void draw(Shader* shader);
   void addTexture(Texture tex);
 
-  void setScale(float scale);
   void setPos(glm::vec3 pos);
 
   inline glm::vec3 getPos() {
-    return mPos;
+    return mPosition;
   }
-  inline float getScale() {
-    return mScale;
-  }
+
 protected:
-  glm::vec3 mPos;
-  float mScale;
   std::vector<Vertex> mVertices;
   std::vector<unsigned int> mIndices;
   std::vector<Texture> mTextures;
@@ -52,8 +48,6 @@ public:
   Cube(glm::vec3 pos);
   virtual void draw(Shader* shader);
 
-  void setRotate(float angle, glm::vec3 axis);
-
 private:
   GLuint mVAO;
   float mRotateAngle;
@@ -66,7 +60,6 @@ public:
   NormalledCube(glm::vec3 pos);
 
   virtual void draw(Shader* shader);
-  void setRotate(float angle, glm::vec3 axis);
   void setReverse(bool r) {
     mReverse = r;
   }

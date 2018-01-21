@@ -1,11 +1,14 @@
 #include "Mesh.h"
 
-Mesh::Mesh() {
+using namespace glm;
+
+Mesh::Mesh() : Object(vec3(0)) {
 
 }
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures) :
-  mVertices(vertices), mIndices(indices), mTextures(textures), mScale(1.0f)
+  Object(vec3(0)),
+  mVertices(vertices), mIndices(indices), mTextures(textures)
 {
   glGenVertexArrays(1, &mVAO);
   glGenBuffers(1, &mVBO);
@@ -33,10 +36,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
 }
 
 void Mesh::draw(Shader* shader) {
-  glm::mat4 model;
-  model = glm::translate(model, mPos);
-  model = glm::scale(model, glm::vec3(mScale, mScale, mScale));
-  shader->setMat4("model", model);
+  shader->setMat4("model", mParentModelMatrix * mModelMatrix);
 
   unsigned int diffuseNr = 0;
   unsigned int specularNr = 0;
@@ -56,18 +56,18 @@ void Mesh::draw(Shader* shader) {
 
   glBindVertexArray(mVAO);
   glDrawElements(GL_TRIANGLES, mIndices.size(), GL_UNSIGNED_INT, 0);
+
+  for (auto i : mChildren) {
+    i->draw(shader);
+  }
 }
 
 void Mesh::addTexture(Texture tex) {
   mTextures.push_back(tex);
 }
 
-void Mesh::setScale(float scale) {
-  mScale = scale;
-}
-
 void Mesh::setPos(glm::vec3 pos) {
-  mPos = pos;
+  setPosition(pos);
 }
 
 Cube::Cube() : Cube(glm::vec3(0.0f, 0.0f, 0.0f)) {
@@ -118,9 +118,8 @@ Cube::Cube(glm::vec3 pos) : mRotateAngle(0.0f), mRotateAxis(glm::vec3(0.0f, 1.0f
             -1.0f,  1.0f,  1.0f, 0.0f, 0.0f  // bottom-left  
   };
 
-
-  mPos = pos;
-  mScale = 1.0f;
+  setPosition(pos);
+  //mScale = 1.0f;
 
   glGenVertexArrays(1, &mVAO);
   glBindVertexArray(mVAO);
@@ -140,11 +139,7 @@ Cube::Cube(glm::vec3 pos) : mRotateAngle(0.0f), mRotateAxis(glm::vec3(0.0f, 1.0f
 }
 
 void Cube::draw(Shader* shader) {
-  glm::mat4 model;
-  model = glm::translate(model, mPos);
-  model = glm::rotate(model, (float)glfwGetTime() * glm::radians(mRotateAngle), mRotateAxis);
-  model = glm::scale(model, glm::vec3(mScale, mScale, mScale));
-  shader->setMat4("model", model);
+  shader->setMat4("model", mParentModelMatrix * mModelMatrix);
 
 
   unsigned int textureNr = 0;
@@ -159,13 +154,11 @@ void Cube::draw(Shader* shader) {
   glBindVertexArray(mVAO);
   glDrawArrays(GL_TRIANGLES, 0, 36);
   glBindVertexArray(0);
-}
 
-void Cube::setRotate(float angle, glm::vec3 axis) {
-  mRotateAngle = angle;
-  mRotateAxis = axis;
+  for (auto i : mChildren) {
+    i->draw(shader);
+  }
 }
-
 
 NormalledCube::NormalledCube() : NormalledCube(glm::vec3(0.0f, 0.0f, 0.0f)) {
 
@@ -217,8 +210,8 @@ NormalledCube::NormalledCube(glm::vec3 pos) : mRotateAngle(0.0f), mRotateAxis(gl
             -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left  
   };
   
-  mPos = pos;
-  mScale = 1.0f;
+  setPosition(pos);
+  //mScale = 1.0f;
 
   glGenVertexArrays(1, &mVAO);
   glBindVertexArray(mVAO);
@@ -240,11 +233,8 @@ NormalledCube::NormalledCube(glm::vec3 pos) : mRotateAngle(0.0f), mRotateAxis(gl
 }
 
 void NormalledCube::draw(Shader* shader) {
-  glm::mat4 model;
-  model = glm::translate(model, mPos);
-  model = glm::rotate(model, (float)glfwGetTime() * glm::radians(mRotateAngle), mRotateAxis);
-  model = glm::scale(model, glm::vec3(mScale, mScale, mScale));
-  shader->setMat4("model", model);
+  auto mat = mParentModelMatrix * mModelMatrix;
+  shader->setMat4("model", mParentModelMatrix * mModelMatrix);
 
   unsigned int diffuseNr = 0;
   unsigned int specularNr = 0;
@@ -275,12 +265,12 @@ void NormalledCube::draw(Shader* shader) {
   if (mReverse) {
     glEnable(GL_CULL_FACE);
   }
+
+  for (auto i : mChildren) {
+    i->draw(shader);
+  }
 }
 
-void NormalledCube::setRotate(float angle, glm::vec3 axis) {
-  mRotateAngle = angle;
-  mRotateAxis = axis;
-}
 
 
 Plane::Plane() {
@@ -298,8 +288,7 @@ Plane::Plane(glm::vec3 pos) {
     -25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 25.0f
   };
 
-  mPos = pos;
-  mScale = 1.0f;
+  setPosition(pos);
   glGenVertexArrays(1, &mVAO);
   glBindVertexArray(mVAO);
 
@@ -320,10 +309,7 @@ Plane::Plane(glm::vec3 pos) {
 }
 
 void Plane::draw(Shader* shader) {
-  glm::mat4 model;
-  model = glm::translate(model, mPos);
-  model = glm::scale(model, glm::vec3(mScale, mScale, mScale));
-  shader->setMat4("model", model);
+  shader->setMat4("model", mParentModelMatrix * mModelMatrix);
 
   unsigned int diffuseNr = 0;
   unsigned int specularNr = 0;
@@ -344,4 +330,8 @@ void Plane::draw(Shader* shader) {
   glBindVertexArray(mVAO);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
+
+  for (auto i : mChildren) {
+    i->draw(shader);
+  }
 }

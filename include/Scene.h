@@ -32,6 +32,7 @@ public:
   void setLightingShader(Shader* shader);
   void setSkybox(Skybox* skybox);
   void draw();
+  void update();
 
   void setDirLight(DirLight* light);
   void setFlashLight(SpotLight* light);

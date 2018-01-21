@@ -7,11 +7,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Object.h"
 #include "Shader.h"
 #include "Mesh.h"
 #include "Shadow.h"
 
-class Light {
+class Light :public Object {
 public:
   Light();
   Light(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
@@ -25,7 +26,6 @@ public:
   void setDiffuse(float x, float y, float z);
   void setSpecular(glm::vec3 specular);
   void setSpecular(float x, float y, float z);
-  virtual glm::vec3 getPosition() = 0;
 
 protected:
   const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
@@ -43,12 +43,8 @@ public:
   void setDirection(glm::vec3 direction);
   void setDirection(float x, float y, float z);
 
-  inline virtual glm::vec3 getPosition() {
-    return mPosition;
-  }
-
 private:
-  glm::vec3 mDirection, mPosition;
+  glm::vec3 mDirection;
 };
 
 class PointLight : public Light {
@@ -60,19 +56,13 @@ public:
   virtual void passToShader(Shader* shader);
   virtual void draw(Shader* shader);
 
-  void setPosition(glm::vec3 pos);
-  void setPosition(float x, float y, float z);
   void setConstant(float constant);
   void setLinear(float linear);
   void setQuadratic(float quadratic);
 
-  inline virtual glm::vec3 getPosition() {
-    return mPosition;
-  }
 private:
   int mID;
   std::string mName;
-  glm::vec3 mPosition;
   float mConstant, mLinear, mQuadratic;
 };
 
@@ -86,19 +76,15 @@ public:
   virtual void draw(Shader* shader);
   void updateFlashLight(glm::vec3 position, glm::vec3 direction);
 
-  void setPosition(glm::vec3 pos);
-  void setPosition(float x, float y, float z);
   void setDirection(glm::vec3 dir);
   void setDirection(float x, float y, float z);
   void setCutOff(float cutoff);
   void setOuterCutOff(float outercutoff);
-  inline virtual glm::vec3 getPosition() {
-    return mPosition;
-  }
+
 private:
   int mID;
   std::string mName;
-  glm::vec3 mPosition, mDirection;
+  glm::vec3 mDirection;
   float mCutOff, mOuterCutOff;
 };
 
