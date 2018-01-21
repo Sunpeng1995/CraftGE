@@ -100,6 +100,7 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
+    scene->update();
     scene->draw();
 
 
@@ -118,16 +119,49 @@ Scene* createBasicScene() {
   Texture tex1("res/container.jpg", "normal");
   Texture tex2("res/awesomeface.png", "normal");
 
-  basicScene->setSkybox(new Skybox("res/skybox"));
+  //basicScene->setSkybox(new Skybox("res/skybox"));
 
+  Cube* cube = new Cube(cubePositions[0]);
+  cube->addTexture(tex1);
+  cube->addTexture(tex2);
+  cube->setScale(0.5f);
+  cube->updateRegister([](Object* o) {
+    glm::vec3 rotate = o->getRotation();
+    rotate.y = rotate.y + 0.004f;
+    if (rotate.y > 360.0f) {
+      rotate.y = rotate.y - 360.0f;
+    }
+    o->setRotation(rotate);
+    //glm::vec3 position = glm::vec3(0, glm::sin((float)glfwGetTime()), 0);
+    //o->setPosition(position);
+    float scale = (glm::sin(glfwGetTime()) + 1.0f) / 4.0f + 0.5f;
+    o->setScale(scale);
+  });
 
-  for (int i = 0; i < 1; i++) {
-    Cube* cube = new Cube(cubePositions[i]);
-    cube->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
-    cube->addTexture(tex1);
-    cube->addTexture(tex2);
-    basicScene->addMesh(cube);
-  }
+  Cube* subCube = new Cube(cubePositions[0]);
+  subCube->addTexture(tex1);
+  subCube->addTexture(tex2);
+  subCube->setPosition(glm::vec3(5.0f, 0, 0));
+  subCube->setScale(0.5f);
+  subCube->updateRegister([](Object* o) {
+    glm::vec3 rotate = o->getRotation();
+    rotate.x = rotate.x + 0.002f;
+    if (rotate.x > 360.0f) {
+      rotate.x = rotate.x - 360.0f;
+    }
+    o->setRotation(rotate);
+  });
+
+  Cube* subSubCube = new Cube(cubePositions[0]);
+  subSubCube->addTexture(tex1);
+  subSubCube->addTexture(tex2);
+  subSubCube->setPos(glm::vec3(0, 5.0f, 0));
+  subSubCube->setScale(0.5f);
+
+  cube->addChild(subCube);
+  subCube->addChild(subSubCube);
+
+  basicScene->addMesh(cube);
 
   return basicScene;
 }
@@ -142,11 +176,22 @@ Scene* createLightingScene() {
 
   for (int i = 0; i < 10; i++) {
     NormalledCube* obj = new NormalledCube(cubePositions[i]);
-    obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
     obj->addTexture(tex1);
     obj->addTexture(tex2);
     obj->setScale(0.5f);
     lightingScene->addMesh(obj);
+    obj->updateRegister([=](Object* o) {
+      glm::vec3 rotate = o->getRotation();
+      rotate.y = rotate.y + 0.0005f * i;
+      rotate.x = rotate.x + 0.00005f * i;
+      if (rotate.y > 360.0f) {
+        rotate.y = rotate.y - 360.0f;
+      }
+      if (rotate.x > 360.0f) {
+        rotate.x = rotate.x - 360.0f;
+      }
+      o->setRotation(rotate);
+    });
   }
   lightingScene->setObjectShader(objectShader);
 
@@ -239,11 +284,22 @@ Scene* createNormalScene() {
 
   for (int i = 0; i < 10; i++) {
     NormalledCube* obj = new NormalledCube(cubePositions[i]);
-    obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
     obj->addTexture(tex1);
     obj->addTexture(tex2);
     obj->setScale(0.5f);
     lightingScene->addMesh(obj);
+    obj->updateRegister([=](Object* o) {
+      glm::vec3 rotate = o->getRotation();
+      rotate.y = rotate.y + 0.0005f * i;
+      rotate.x = rotate.x + 0.00005f * i;
+      if (rotate.y > 360.0f) {
+        rotate.y = rotate.y - 360.0f;
+      }
+      if (rotate.x > 360.0f) {
+        rotate.x = rotate.x - 360.0f;
+      }
+      o->setRotation(rotate);
+    });
   }
   lightingScene->setObjectShader(objectShader);
 
@@ -346,7 +402,14 @@ Scene* createPointShadowScene() {
     pointShadowScene->addMesh(obj);
   }
 
-  auto pointLight = new PointLight(-1, glm::vec3(0.0f, 1.0f, 0.0f));
+  auto pointLight = new PointLight(-1, glm::vec3(0.0f, 0.0f, 0.0f));
+  pointLight->updateRegister([](Object* o) {
+    // TODO: fix bug when light move
+
+    //glm::vec3 position = glm::vec3(0, 0, glm::sin((float)glfwGetTime()) * 0.25f);
+    //o->setPosition(position);
+  });
+
   pointShadowScene->addOtherLight(pointLight);
   pointShadowScene->setLightingShader(lightingShader);
 

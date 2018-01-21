@@ -92,6 +92,23 @@ void Scene::addOtherLight(Light* light) {
   mLights.push_back(light);
 }
 
+void Scene::update() {
+  if (mCamera) mCamera->update();
+
+  if (mDirLight) mDirLight->update();
+  if (mFlashLight) mFlashLight->update();
+  for (auto i : mLights) {
+    i->update();
+  }
+
+  for (auto i : mMeshes) {
+    i->update();
+  }
+  for (auto i : mModels) {
+    i->update();
+  }
+}
+
 void Scene::draw() {
 
 #ifdef DEBUG

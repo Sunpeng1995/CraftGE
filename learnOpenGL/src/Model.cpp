@@ -1,21 +1,23 @@
 #include "Model.h"
 
-Model::Model(char* path) : mScale(1.0f) {
+using namespace glm;
+
+Model::Model(char* path) : Object(vec3(0.0f)) {
   loadModel(path);
 }
 
-Model::Model(Mesh* mesh) {
-  mScale = mesh->getScale();
-  mesh->setScale(1.0f);
-  mPosition = mesh->getPos();
-  mesh->setPos(glm::vec3(0.0f, 0.0f, 0.0f));
-  mMeshes.push_back(*mesh);
-  delete mesh;
-}
+//Model::Model(Mesh* mesh) {
+//  mScale = mesh->getScale();
+//  mesh->setScale(1.0f);
+//  mPosition = mesh->getPos();
+//  mesh->setPos(glm::vec3(0.0f, 0.0f, 0.0f));
+//  mMeshes.push_back(*mesh);
+//  delete mesh;
+//}
 
 void Model::draw(Shader* shader) {
-  for (auto m : mMeshes) {
-    m.draw(shader);
+  for (auto i : mChildren) {
+    i->draw(shader);
   }
 }
 
@@ -36,7 +38,9 @@ void Model::loadModel(std::string path) {
 void Model::processNode(aiNode* node, const aiScene* scene) {
   for (int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    mMeshes.push_back(processMesh(mesh, scene));
+    Mesh* child = processMesh(mesh, scene);
+    child->setParent(this);
+    mChildren.push_back(child);
   }
 
   for (int i = 0; i < node->mNumChildren; i++) {
@@ -44,7 +48,7 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
   }
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
+Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene) {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
   std::vector<Texture> textures;
@@ -92,7 +96,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
   }
 
-  return Mesh(vertices, indices, textures);
+  return new Mesh(vertices, indices, textures);
 }
 
 std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName) {

@@ -29,6 +29,9 @@ class Camera :public Object {
 public:
   Camera(int width, int height);
   Camera(int width, int height, glm::vec3 initPos);
+  virtual void draw(Shader* shader) 
+  {
+  }
 
   inline void bindShader(const Shader &shader) {
     shaders.push_back(&shader);
