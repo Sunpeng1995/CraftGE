@@ -20,6 +20,7 @@ set(CMAKE_COLOR_MAKEFILE   ON)
 include_directories(include)
 link_directories(lib)
 
+
 if (WIN32)
   file(GLOB PROJECT_LINK_LIBS "lib/*.lib")
   file(GLOB PROJECT_LINK_DLLS "lib/*.dll")
@@ -42,6 +43,11 @@ file(COPY obj DESTINATION ${PROJECT_BINARY_DIR})
 file(GLOB SOURCES "src/*.cpp"
                   "src/*.c")
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+file(GLOB INCLUDES "include/*.h")
+
+add_executable(${PROJECT_NAME} ${SOURCES} ${INCLUDES})
+
+source_group("Include Files" FILES ${INCLUDES})
+#source_group("Source" FILES ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})

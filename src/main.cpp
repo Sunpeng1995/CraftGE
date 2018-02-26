@@ -15,6 +15,7 @@
 #include "Scene.h"
 #include "Model.h"
 #include "Skybox.h"
+#include "Input.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -70,6 +71,8 @@ int main() {
     return -1;
   }
   glfwMakeContextCurrent(window);
+
+  gInputSystem = new InputSystem(window);
 
   // init glad before calling any OpenGL function
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
