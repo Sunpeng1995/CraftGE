@@ -1,7 +1,7 @@
 #ifndef __SCENE_H__
 #define __SCENE_H__
 
-//#define DEBUG
+#define DEBUG
 
 #include <vector>
 
@@ -17,7 +17,18 @@
 
 class Scene {
 public:
-  Scene(int width, int height);
+  enum ShadowType {
+    parallel,
+    point
+  };
+
+  enum ShadingType {
+    forward,
+    deferred
+  };
+
+
+  Scene(int width, int height, ShadingType st = forward);
   virtual ~Scene();
 
   inline void updateScreen(int width, int height) {
@@ -37,11 +48,6 @@ public:
   void setDirLight(DirLight* light);
   void setFlashLight(SpotLight* light);
   void addOtherLight(Light* light);
-
-  enum ShadowType {
-    parallel,
-    point
-  };
 
   void enableShadow(ShadowType mode);
   void disableShadow();
@@ -64,6 +70,8 @@ public:
   }
 
 private:
+  ShadingType mShadingType;
+
   bool enableFlashLight = true;
   int mWidth, mHeight;
   Camera* mCamera;
@@ -92,6 +100,14 @@ private:
   std::vector<Light*> mLights;
   DirLight* mDirLight;
   SpotLight* mFlashLight;
+
+
+  // Deferred Shading
+  GLuint gBuffer;
+  GLuint gPosition, gNormal, gAlbedoSpec;
+  Shader* gBufferShader;
+  void setupGBuffer();
+
 
   int fps = 0;
   double lastTime = 0, currentTime;

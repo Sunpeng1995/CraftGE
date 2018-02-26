@@ -1,6 +1,7 @@
 #include "Scene.h"
 
-Scene::Scene(int width, int height) : mWidth(width), mHeight(height) {
+Scene::Scene(int width, int height, ShadingType st) : 
+  mWidth(width), mHeight(height), mShadingType(st) {
   mCamera = new Camera(width, height);
   mShader = new Shader("shader/simple.vert", "shader/simple.frag");
   mSkybox = nullptr;
@@ -10,6 +11,11 @@ Scene::Scene(int width, int height) : mWidth(width), mHeight(height) {
   mPointDepthShader = nullptr;
   mFlashLight = nullptr;
   mDirLight = nullptr;
+
+  if (mShadingType == deferred) {
+    setupGBuffer();
+    gBufferShader = new Shader("shader/deferred/deferred_gbuffer.vert", "shader/deferred/deferred_gbuffer.frag");
+  }
 
 #ifdef DEBUG
   quadShader = new Shader("shader/debug_quad.vs", "shader/debug_quad_depth.fs");
@@ -111,48 +117,58 @@ void Scene::update() {
 
 void Scene::draw() {
 
-#ifdef DEBUG
-  quadShader->use();
-  quadShader->setInt("depthMap", 0);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, mDepthMap);
-  glBindVertexArray(quadVAO);
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  glBindVertexArray(0);
-#endif // DEBUG
 #ifndef DEBUG
-
 
   drawLightings(mLightingShader);
 
-  if (shadowEnable) {
-    drawToDepthMap();
-    mShadowShader->use();
-    mShadowShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
-    mShadowShader->setInt("shadowMap", 4);
-    glActiveTexture(GL_TEXTURE0 + 4);
-    glBindTexture(GL_TEXTURE_2D, mDepthMap);
-    drawMeshes(mShadowShader);
+#endif // !DEBUG
+  if (mShadingType == forward) {
+
+    if (shadowEnable) {
+      drawToDepthMap();
+      mShadowShader->use();
+      mShadowShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
+      mShadowShader->setInt("shadowMap", 4);
+      glActiveTexture(GL_TEXTURE0 + 4);
+      glBindTexture(GL_TEXTURE_2D, mDepthMap);
+      drawMeshes(mShadowShader);
+    }
+    if (pointShadowEnable) {
+      drawToDepthMap();
+      mPointShadowShader->use();
+      mPointShadowShader->setFloat("far_plane", far_plane);
+      mPointShadowShader->setInt("depthMap", 4);
+      glActiveTexture(GL_TEXTURE0 + 4);
+      glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+      drawMeshes(mPointShadowShader);
+    }
+    if (!pointShadowEnable && !shadowEnable) {
+      drawMeshes(mShader);
+    }
   }
-  if (pointShadowEnable) {
-    drawToDepthMap();
-    mPointShadowShader->use();
-    mPointShadowShader->setFloat("far_plane", far_plane);
-    mPointShadowShader->setInt("depthMap", 4);
-    glActiveTexture(GL_TEXTURE0 + 4);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
-    drawMeshes(mPointShadowShader);
+  else {
+    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    drawMeshes(gBufferShader);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
-  if (!pointShadowEnable && !shadowEnable) {
-    drawMeshes(mShader);
-  }
+#ifndef DEBUG
 
   if (mSkybox) {
     mSkybox->draw(mCamera);
   }
 
-
 #endif // !DEBUG
+
+#ifdef DEBUG
+  quadShader->use();
+  quadShader->setInt("depthMap", 0);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+  glBindVertexArray(quadVAO);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  glBindVertexArray(0);
+#endif // DEBUG
 
   if (lastTime == 0) {
     lastTime = glfwGetTime();
@@ -364,4 +380,49 @@ void Scene::drawToDepthMap() {
     glViewport(0, 0, mCamera->scrWidth(), mCamera->scrHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
+}
+
+void Scene::setupGBuffer() {
+  glGenFramebuffers(1, &gBuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+
+  // Position cache
+  glGenTextures(1, &gPosition);
+  glBindTexture(GL_TEXTURE_2D, gPosition);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+
+  // Normal cache
+  glGenTextures(1, &gNormal);
+  glBindTexture(GL_TEXTURE_2D, gNormal);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mWidth, mHeight, 0, GL_RGB, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+  // Albedo + Specular cache
+  glGenTextures(1, &gAlbedoSpec);
+  glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
+
+  GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+  glDrawBuffers(3, attachments);
+
+  GLuint rboDepth;
+  glGenRenderbuffers(1, &rboDepth);
+  glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mWidth, mHeight);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    std::cout << "Framebuffer not complete!" << std::endl;
+  }
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 }
