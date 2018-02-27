@@ -9,10 +9,14 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
+#include "ModelManager.h"
+
 class Shader;
 
 class Object {
 public:
+  virtual ~Object();
+
   void addChild(Object* child);
 
   inline glm::vec3 getPosition() {
@@ -77,6 +81,7 @@ public:
 
   virtual void draw(Shader* shader) = 0;
   virtual void update();
+  virtual shared_model_data* packSharedData() { return nullptr; }
 
 protected:
   // Object position in the parent's space
@@ -92,8 +97,6 @@ protected:
 
   glm::mat4 mModelMatrix;
   glm::mat4 mParentModelMatrix;
-
-  unsigned int mChildCount;
 
   std::vector<Object*> mChildren;
   Object* mParent;
