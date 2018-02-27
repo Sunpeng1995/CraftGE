@@ -26,6 +26,10 @@ Object::Object(vec3 position, vec3 rotation, vec3 scale) :
   calcModelMatrix();
 }
 
+Object::~Object() {
+
+}
+
 void Object::addChild(Object* child) {
   mChildren.push_back(child);
   child->mParent = this;

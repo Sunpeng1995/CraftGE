@@ -3,7 +3,13 @@
 using namespace glm;
 
 Model::Model(char* path) : Object(vec3(0.0f)) {
-  loadModel(path);
+  if (ModelManager::getInstance()->isModelLoaded(path)) {
+    loadFromShared(path);
+  }
+  else {
+    loadModel(path);
+    saveToShared(path);
+  }
 }
 
 //Model::Model(Mesh* mesh) {
@@ -18,6 +24,23 @@ Model::Model(char* path) : Object(vec3(0.0f)) {
 void Model::draw(Shader* shader) {
   for (auto i : mChildren) {
     i->draw(shader);
+  }
+}
+
+void Model::saveToShared(std::string path) {
+  std::vector<shared_model_data*> data;
+  for (auto i : mChildren) {
+    data.push_back(i->packSharedData());
+  }
+  ModelManager::getInstance()->addModelData(path, data);
+}
+
+void Model::loadFromShared(std::string path) {
+  auto data = ModelManager::getInstance()->getLoadedModel(path);
+  for (auto i : data) {
+    auto m = new Mesh(i);
+    m->setParent(this);
+    mChildren.push_back(m);
   }
 }
 
