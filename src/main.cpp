@@ -29,6 +29,7 @@ Scene* createNormalScene();
 Scene* createShadowScene();
 Scene* createPointShadowScene();
 Scene* createDeferredShadingScene();
+Scene* createForwardShadingScene();
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -52,7 +53,22 @@ glm::vec3 cubePositions[] = {
   glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
-Scene *scene, *basicScene, *lightingScene, *normalScene, *modelScene, *shadowScene, *pointShadowScene, *deferredShadingScene;
+glm::vec3 objectPositions[] = {
+  glm::vec3(-3.0, -2.0, -3.0),
+  glm::vec3(0.0, -2.0, -3.0),
+  glm::vec3(3.0, -2.0, -3.0),
+  glm::vec3(-3.0, -2.0, 0.0),
+  glm::vec3(0.0, -2.0, 0.0),
+  glm::vec3(3.0, -2.0, 0.0),
+  glm::vec3(-3.0, -2.0, 3.0),
+  glm::vec3(0.0, -2.0, 3.0),
+  glm::vec3(3.0, -2.0, 3.0)
+};
+
+Scene *scene, *basicScene, *lightingScene, *normalScene, *modelScene,
+*shadowScene, *pointShadowScene,
+*deferredShadingScene, *forwardShadingScene;
+
 int currentScene = 1;
 bool isNormal = true;
 
@@ -96,6 +112,7 @@ int main() {
   shadowScene = createShadowScene();
   pointShadowScene = createPointShadowScene();
   deferredShadingScene = createDeferredShadingScene();
+  forwardShadingScene = createForwardShadingScene();
 
   scene = deferredShadingScene;
 
@@ -433,54 +450,84 @@ Scene* createPointShadowScene() {
 
 Scene* createDeferredShadingScene() {
   auto ds_scene = new Scene(sWidth, sHeight, Scene::deferred);
-  auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
-  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-
-  std::vector<glm::vec3> objectPositions;
-  objectPositions.push_back(glm::vec3(-3.0, -2.0, -3.0));
-  objectPositions.push_back(glm::vec3(0.0, -2.0, -3.0));
-  objectPositions.push_back(glm::vec3(3.0, -2.0, -3.0));
-  objectPositions.push_back(glm::vec3(-3.0, -2.0, 0.0));
-  objectPositions.push_back(glm::vec3(0.0, -2.0, 0.0));
-  objectPositions.push_back(glm::vec3(3.0, -2.0, 0.0));
-  objectPositions.push_back(glm::vec3(-3.0, -2.0, 3.0));
-  objectPositions.push_back(glm::vec3(0.0, -2.0, 3.0));
-  objectPositions.push_back(glm::vec3(3.0, -2.0, 3.0));
 
   for (int i = 0; i < 9; i++) {
     Model* nano = new Model("obj/nanosuit/nanosuit.obj");
+    //Model* nano = new Model("obj/f16/f16.obj");
     nano->setPosition(objectPositions[i]);
     nano->setScale(0.2f);
     ds_scene->addModel(nano);
   }
 
-  //ds_scene->setObjectShader(gbuffer_shader);
+  int lightCount = 128;
+  std::vector<glm::vec3> lightPositions;
+  std::vector<glm::vec3> lightColors;
+  srand(13);
+  for (int i = 0; i < lightCount; i++) {
+    float x = ((rand() % 100) / 100.0f) * 6 - 3.0;
+    float y = ((rand() % 100) / 100.0f) * 6 - 3.5;
+    float z = ((rand() % 100) / 100.0f) * 6 - 3.0;
+    lightPositions.push_back(glm::vec3(x, y, z));
+    float r = ((rand() % 100) / 200.0f) + 0.5;
+    float g = ((rand() % 100) / 200.0f) + 0.5;
+    float b = ((rand() % 100) / 200.0f) + 0.5;
+    lightColors.push_back(glm::vec3(r, g, b));
+  }
 
-  glm::vec3 ambient(0.1f, 0.1f, 0.1f);
-  glm::vec3 diffuse(0.5f, 0.5f, 0.5f);
-  glm::vec3 specular(1.0f, 1.0f, 1.0f);
-
-  glm::vec3 pointLightPositions[] = {
-    glm::vec3(0.7f,  0.2f,  2.0f),
-    glm::vec3(2.3f, -3.3f, -4.0f),
-    glm::vec3(-4.0f,  2.0f, -12.0f),
-    glm::vec3(0.0f,  0.0f, -3.0f)
-  };
-
-  auto dirLight = new DirLight(glm::vec3(-0.2f, -1.0f, -0.3f), ambient, diffuse, specular);
-  ds_scene->setDirLight(dirLight);
-
-  for (int i = 0; i < 4; i++) {
-    auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
-    Cube* light = new Cube(pointLightPositions[i]);
-    light->setScale(0.2f);
-    pointLight->setLightMesh(light);
+  for (int i = 0; i < lightCount; i++) {
+    auto pointLight = new PointLight(i, lightPositions[i], glm::vec3(0.1f), lightColors[i], lightColors[i], 1.0, 0.7, 1.8);
+    auto lightcube = new Cube(lightPositions[i]);
+    lightcube->setScale(0.1f);
+    pointLight->setLightMesh(lightcube);
     ds_scene->addOtherLight(pointLight);
   }
 
+  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
   ds_scene->setLightingShader(lightingShader);
 
   return ds_scene;
+}
+
+Scene* createForwardShadingScene() {
+  auto fs_scene = new Scene(sWidth, sHeight);
+  auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
+  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+
+  for (int i = 0; i < 9; i++) {
+    Model* nano = new Model("obj/nanosuit/nanosuit.obj");
+    //Model* nano = new Model("obj/f16/f16.obj");
+    nano->setPosition(objectPositions[i]);
+    nano->setScale(0.2f);
+    fs_scene->addModel(nano);
+  }
+  fs_scene->setObjectShader(objectShader);
+
+  int lightCount = 4;
+  std::vector<glm::vec3> lightPositions;
+  std::vector<glm::vec3> lightColors;
+  srand(13);
+  for (int i = 0; i < lightCount; i++) {
+    float x = ((rand() % 100) / 100.0f) * 6 - 3.0;
+    float y = ((rand() % 100) / 100.0f) * 6 - 3.5;
+    float z = ((rand() % 100) / 100.0f) * 6 - 3.0;
+    lightPositions.push_back(glm::vec3(x, y, z));
+    float r = ((rand() % 100) / 200.0f) + 0.5;
+    float g = ((rand() % 100) / 200.0f) + 0.5;
+    float b = ((rand() % 100) / 200.0f) + 0.5;
+    lightColors.push_back(glm::vec3(r, g, b));
+  }
+
+  for (int i = 0; i < lightCount; i++) {
+    auto pointLight = new PointLight(i, lightPositions[i], glm::vec3(0.1f), lightColors[i], lightColors[i], 1.0, 0.7, 1.8);
+    auto lightcube = new Cube(lightPositions[i]);
+    lightcube->setScale(0.1f);
+    pointLight->setLightMesh(lightcube);
+    fs_scene->addOtherLight(pointLight);
+  }
+
+  fs_scene->setLightingShader(lightingShader);
+
+  return fs_scene;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -551,6 +598,10 @@ void processInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS && currentScene != 7) {
     scene = deferredShadingScene;
     currentScene = 7;
+  }
+  if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS && currentScene != 8) {
+    scene = forwardShadingScene;
+    currentScene = 8;
   }
 
   if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && currentScene == 3) {

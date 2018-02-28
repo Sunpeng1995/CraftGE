@@ -1,7 +1,7 @@
 #ifndef __SCENE_H__
 #define __SCENE_H__
 
-#define DEBUG
+//#define DEBUG
 
 #include <vector>
 
@@ -105,8 +105,10 @@ private:
   // Deferred Shading
   GLuint gBuffer;
   GLuint gPosition, gNormal, gAlbedoSpec;
-  Shader* gBufferShader;
+  Shader* gBufferShader, *gLightingShader;
+  GLuint gQuadVAO;
   void setupGBuffer();
+  void drawGBufferInQuad();
 
 
   int fps = 0;

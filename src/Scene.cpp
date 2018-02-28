@@ -15,6 +15,25 @@ Scene::Scene(int width, int height, ShadingType st) :
   if (mShadingType == deferred) {
     setupGBuffer();
     gBufferShader = new Shader("shader/deferred/deferred_gbuffer.vert", "shader/deferred/deferred_gbuffer.frag");
+    gLightingShader = new Shader("shader/deferred/lighting_pass.vert", "shader/deferred/lighting_pass.frag");
+
+    float quadVertices[] = {
+      // positions        // texture Coords
+      -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+      -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+      1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+      1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+    };
+    GLuint quadVBO;
+    glGenVertexArrays(1, &gQuadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(gQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
   }
 
 #ifdef DEBUG
@@ -116,13 +135,10 @@ void Scene::update() {
 }
 
 void Scene::draw() {
-
-#ifndef DEBUG
+  // Forward shading
+  if (mShadingType == forward) {
 
   drawLightings(mLightingShader);
-
-#endif // !DEBUG
-  if (mShadingType == forward) {
 
     if (shadowEnable) {
       drawToDepthMap();
@@ -146,11 +162,35 @@ void Scene::draw() {
       drawMeshes(mShader);
     }
   }
+
+  // Deferred shading
   else {
+    // Draw to G-Buffer
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     drawMeshes(gBufferShader);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Draw lighting
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gPosition);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, gNormal);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+
+    drawGBufferInQuad();
+
+    // Forward shading after deferred
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(0, 0, mWidth, mHeight, 0, 0, mWidth, mHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    drawLightings(mLightingShader);
+
   }
 #ifndef DEBUG
 
@@ -220,6 +260,7 @@ void Scene::drawLightings(Shader* shader) {
 
   //mLightingObj->draw(shader);
   for (auto l : mLights) {
+    shader->setVec3("color", l->getColor());
     l->draw(shader);
   }
 }
@@ -407,5 +448,19 @@ void Scene::setupGBuffer() {
   }
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+}
 
+void Scene::drawGBufferInQuad() {
+  gLightingShader->use();
+  gLightingShader->setInt("gPosition", 0);
+  gLightingShader->setInt("gNormal", 1);
+  gLightingShader->setInt("gAlbedoSpec", 2);
+  gLightingShader->setVec3("viewPos", mCamera->getPos());
+  for (auto l : mLights) {
+    l->passToShader(gLightingShader);
+  }
+
+  glBindVertexArray(gQuadVAO);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  glBindVertexArray(0);
 }

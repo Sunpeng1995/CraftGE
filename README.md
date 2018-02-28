@@ -55,7 +55,7 @@ cmake --build .
   - [x] Spot lights
 - Transforms
   - [x] Basic object transforms
-  - [ ] Bones system
+  - [x] Bones system
   - [ ] Animation Parsing
 - Camera
   - [x] Free observing Camera
@@ -79,7 +79,7 @@ cmake --build .
   - [x] Shader resource management
   - [ ] Build-in default shaders
 - [x] Model importer using third party library
-- [ ] Deferred rendering
+- [x] Deferred rendering
 
 ### Advanced Modules
 
