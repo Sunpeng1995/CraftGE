@@ -8,7 +8,7 @@ Mesh::Mesh() : Object(vec3(0)) {
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures) :
   Object(vec3(0)),
-  mVertices(vertices), mIndices(indices), mTextures(textures)
+  mVertices(vertices), mIndices(indices), mTextures(textures), mIndicesCount(indices.size())
 {
   glGenVertexArrays(1, &mVAO);
   glGenBuffers(1, &mVBO);
@@ -35,6 +35,15 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+Mesh::Mesh(shared_model_data* data) : Object(vec3(0)) {
+  mVAO = data->VAO;
+  mIndicesCount = data->IndicesCount;
+  mTextures = data->Tex;
+  for (auto i : data->Children) {
+    mChildren.push_back(new Mesh(i));
+  }
+}
+
 void Mesh::draw(Shader* shader) {
   shader->setMat4("model", mParentModelMatrix * mModelMatrix);
 
@@ -55,7 +64,7 @@ void Mesh::draw(Shader* shader) {
   glActiveTexture(GL_TEXTURE0);
 
   glBindVertexArray(mVAO);
-  glDrawElements(GL_TRIANGLES, mIndices.size(), GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0);
 
   for (auto i : mChildren) {
     i->draw(shader);
@@ -68,6 +77,18 @@ void Mesh::addTexture(Texture tex) {
 
 void Mesh::setPos(glm::vec3 pos) {
   setPosition(pos);
+}
+
+shared_model_data* Mesh::packSharedData() {
+  auto data = new shared_model_data();
+  data->VAO = mVAO;
+  data->IndicesCount = mIndicesCount;
+  data->Tex = mTextures;
+  for (int i = 0; i < mChildren.size(); i++) {
+    auto subdata = mChildren[i]->packSharedData();
+    data->Children.push_back(subdata);
+  }
+  return data;
 }
 
 Cube::Cube() : Cube(glm::vec3(0.0f, 0.0f, 0.0f)) {

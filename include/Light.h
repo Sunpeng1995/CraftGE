@@ -27,6 +27,10 @@ public:
   void setSpecular(glm::vec3 specular);
   void setSpecular(float x, float y, float z);
 
+  inline glm::vec3 getColor() {
+    return mSpecular;
+  }
+
 protected:
   const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
   glm::vec3 mAmbient, mDiffuse, mSpecular;
@@ -51,6 +55,7 @@ class PointLight : public Light {
 public:
   PointLight(int id);
   PointLight(int id, glm::vec3 position);
+  PointLight(int id, glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
   PointLight(int id, glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
     float constant, float linear, float quadratic);
   virtual void passToShader(Shader* shader);

@@ -88,6 +88,11 @@ PointLight::PointLight(int id, glm::vec3 position) :
 
 }
 
+PointLight::PointLight(int id, glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular) :
+  PointLight(id, position, ambient, diffuse, specular, 1.0f, 0.09f, 0.0032f) {
+
+}
+
 PointLight::PointLight(int id, glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
   float constant, float linear, float quadratic) :
   Light(ambient, diffuse, specular), mID(id), mConstant(constant), mLinear(linear), mQuadratic(quadratic)

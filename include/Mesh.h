@@ -13,6 +13,7 @@
 #include "Object.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "ModelManager.h"
 
 struct Vertex {
   glm::vec3 Position;
@@ -25,6 +26,7 @@ class Mesh :public Object {
 public:
   Mesh();
   Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+  Mesh(shared_model_data* data);
   virtual void draw(Shader* shader);
   void addTexture(Texture tex);
 
@@ -34,12 +36,15 @@ public:
     return mPosition;
   }
 
+  virtual shared_model_data* packSharedData();
+
 protected:
   std::vector<Vertex> mVertices;
   std::vector<unsigned int> mIndices;
   std::vector<Texture> mTextures;
 private:
   unsigned int mVAO, mVBO, mEBO;
+  size_t mIndicesCount;
 };
 
 class Cube : public Mesh {

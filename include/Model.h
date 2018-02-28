@@ -10,6 +10,7 @@
 #include "Object.h"
 #include "Shader.h"
 #include "Mesh.h"
+#include "ModelManager.h"
 
 class Model : public Object {
 public:
@@ -17,21 +18,8 @@ public:
   //Model(Mesh* mesh);
   virtual void draw(Shader* shader);
 
-  //inline void setScale(float scale) {
-  //  //for (auto m : mMeshes) {
-  //  //  m.setScale(mScale);
-  //  //}
-  //  for (int i = 0; i < mMeshes.size(); i++) {
-  //    mMeshes[i].setScale(mScale);
-  //  }
-  //}
-
-  //inline void setPosition(glm::vec3 pos) {
-  //  mPosition = pos;
-  //  for (int i = 0; i < mMeshes.size(); i++) {
-  //    mMeshes[i].setPos(mPosition);
-  //  }
-  //}
+  void saveToShared(std::string path);
+  void loadFromShared(std::string path);
 
 private:
   std::vector<Texture> mTextureLoaded;
