@@ -28,7 +28,7 @@ public:
   };
 
 
-  Scene(int width, int height, ShadingType st = forward);
+  Scene(int width, int height, std::string scene_name, ShadingType st = forward);
   virtual ~Scene();
 
   inline void updateScreen(int width, int height) {
@@ -69,8 +69,13 @@ public:
     enableFlashLight = enable;
   }
 
+  inline std::string getName() {
+    return mName;
+  }
+
 private:
   ShadingType mShadingType;
+  std::string mName;
 
   bool enableFlashLight = true;
   int mWidth, mHeight;

@@ -1,7 +1,7 @@
 #include "Scene.h"
 
-Scene::Scene(int width, int height, ShadingType st) : 
-  mWidth(width), mHeight(height), mShadingType(st) {
+Scene::Scene(int width, int height, std::string scene_name, ShadingType st) : 
+  mWidth(width), mHeight(height), mShadingType(st), mName(scene_name) {
   mCamera = new Camera(width, height);
   mShader = new Shader("shader/simple.vert", "shader/simple.frag");
   mSkybox = nullptr;
