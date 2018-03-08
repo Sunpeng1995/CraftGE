@@ -418,6 +418,45 @@ void SceneManager::createDeferredShadingScene() {
   addScene(ds_scene);
 }
 
+void SceneManager::createFoggedScene() {
+  Scene* shadowScene = new Scene(mScreenWidth, mScreenHeight, "Fogged", Scene::deferred);
+  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+  Texture tex1("res/wood.png", "texture_diffuse");
+  Texture tex2("res/wood.png", "texture_specular");
+  Texture noise("res/fog_noise.jpg", "fogNoise");
+  shadowScene->addOtherTextures(noise);
+
+  glm::vec3 cubepos[] = {
+    glm::vec3(0.0f, 1.5f, 0.0f),
+    glm::vec3(2.0f, 0.0f, 1.0f),
+    glm::vec3(-1.0f, 0.0f, 2.0f)
+  };
+
+  for (int i = 0; i < 3; i++) {
+    NormalledCube* obj = new NormalledCube(cubepos[i]);
+    obj->addTexture(tex1);
+    obj->addTexture(tex2);
+    obj->setScale(0.25f, 1.0f, 0.25f);
+    if (i == 2) {
+      obj->setScale(0.125f, 0.5f, 0.125f);
+    }
+    shadowScene->addMesh(obj);
+  }
+  Plane* plane = new Plane(glm::vec3(0.0f, 0.25f, 0.0f));
+  plane->addTexture(tex1);
+  shadowScene->addMesh(plane);
+  //Plane* p2 = new Plane(glm::vec3(2.0f, 0.25f, 2.0f));
+  //p2->addTexture(tex1);
+  //shadowScene->addMesh(p2);
+
+  auto dirLight = new DirLight(glm::vec3(2.0f, -4.0f, 1.0f));
+  shadowScene->setDirLight(dirLight);
+
+  shadowScene->setLightingShader(lightingShader);
+
+  addScene(shadowScene);
+}
+
 void SceneManager::createAllExampleScenes() {
   createBasicScene();
   createLightingScene();
@@ -426,6 +465,7 @@ void SceneManager::createAllExampleScenes() {
   createShadowScene();
   createPointShadowScene();
   createDeferredShadingScene();
+  createFoggedScene();
 
   setCurrentScene("Basic");
 }

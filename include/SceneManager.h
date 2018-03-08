@@ -28,6 +28,7 @@ public:
   void createShadowScene();
   void createPointShadowScene();
   void createDeferredShadingScene();
+  void createFoggedScene();
 
   void createAllExampleScenes();
 
