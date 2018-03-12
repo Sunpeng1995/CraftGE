@@ -77,8 +77,8 @@ void SceneManager::updateScreenSize() {
 void SceneManager::createBasicScene() {
   Scene* basicScene = new Scene(mScreenWidth, mScreenHeight, "Basic");
 
-  Texture tex1("res/container.jpg", "normal");
-  Texture tex2("res/awesomeface.png", "normal");
+  Texture tex1("res/textures/container.jpg", "normal");
+  Texture tex2("res/textures/awesomeface.png", "normal");
 
   //basicScene->setSkybox(new Skybox("res/skybox"));
 
@@ -132,8 +132,8 @@ void SceneManager::createLightingScene() {
 
   auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-  Texture tex1("res/container2.png", "texture_diffuse");
-  Texture tex2("res/container2_specular.png", "texture_specular");
+  Texture tex1("res/textures/container2.png", "texture_diffuse");
+  Texture tex2("res/textures/container2_specular.png", "texture_specular");
 
   for (int i = 0; i < 10; i++) {
     NormalledCube* obj = new NormalledCube(cubePositions[i]);
@@ -198,11 +198,11 @@ void SceneManager::createModelScene() {
   //nanosuit->setScale(0.1f);
   //ModelScene->addModel(nanosuit);
 
-  Model* cruiser = new Model("obj/cruiser/cruiser.obj");
+  Model* cruiser = new Model("res/models/cruiser/cruiser.obj");
   cruiser->setPosition(glm::vec3(2.0f, 0.0f, 0.0f));
   ModelScene->addModel(cruiser);
 
-  Model* f16 = new Model("obj/f16/f16.obj");
+  Model* f16 = new Model("res/models/f16/f16.obj");
   f16->setPosition(glm::vec3(-2.0f, 0.0f, 0.0f));
   ModelScene->addModel(f16);
 
@@ -240,13 +240,13 @@ void SceneManager::createNormalScene() {
 
   auto objectShader = new Shader("shader/object_n.vert", "shader/object_n.frag");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-  Texture tex1("res/brick_d.jpg", "texture_diffuse");
-  Texture tex2("res/brick_n.jpg", "texture_normal");
+  Texture tex1("res/textures/brick_d.jpg", "texture_diffuse");
+  Texture tex2("res/textures/brick_n.jpg", "texture_normal");
 
   lightingScene->setObjectShader(objectShader);
 
   for (int i = 0; i < 10; i++) {
-    Model* m = new Model("obj/normalcube/cube.obj");
+    Model* m = new Model("res/models/normalcube/cube.obj");
     m->setPosition(cubePositions[i]);
     lightingScene->addModel(m);
     m->updateRegister([=](Object* o){
@@ -294,8 +294,8 @@ void SceneManager::createShadowScene() {
   Scene* shadowScene = new Scene(mScreenWidth, mScreenHeight, "Shadow");
   auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-  Texture tex1("res/wood.png", "texture_diffuse");
-  Texture tex2("res/wood.png", "texture_specular");
+  Texture tex1("res/textures/wood.png", "texture_diffuse");
+  Texture tex2("res/textures/wood.png", "texture_specular");
 
   glm::vec3 cubepos[] = {
     glm::vec3(0.0f, 1.5f, 0.0f),
@@ -332,8 +332,8 @@ void SceneManager::createShadowScene() {
 void SceneManager::createPointShadowScene() {
   auto pointShadowScene = new Scene(mScreenWidth, mScreenHeight, "PointShadow");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-  Texture tex1("res/wood.png", "texture_diffuse");
-  Texture tex2("res/wood.png", "texture_specular");
+  Texture tex1("res/textures/wood.png", "texture_diffuse");
+  Texture tex2("res/textures/wood.png", "texture_specular");
 
   glm::vec3 cubepos[] = {
     glm::vec3(4.0f, -3.5f, 0.0f),
@@ -382,7 +382,7 @@ void SceneManager::createDeferredShadingScene() {
   auto ds_scene = new Scene(mScreenWidth, mScreenHeight, "Deferred", Scene::deferred);
 
   for (int i = 0; i < 9; i++) {
-    Model* nano = new Model("obj/nanosuit/nanosuit.obj");
+    Model* nano = new Model("res/models/nanosuit/nanosuit.obj");
     //Model* nano = new Model("obj/f16/f16.obj");
     nano->setPosition(objectPositions[i]);
     nano->setScale(0.2f);
