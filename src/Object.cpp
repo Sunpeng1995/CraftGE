@@ -23,6 +23,10 @@ Object::Object(vec3 position, vec3 rotation, vec3 scale) :
   mUp = vec3(0, 1.0f, 0);
   mRight = normalize(cross(mForward, mUp));
 
+  mRotationMatrix = glm::mat4(1.0f);
+  mModelMatrix = glm::mat4(1.0f);
+  mParentModelMatrix = glm::mat4(1.0f);
+
   calcModelMatrix();
 }
 
@@ -39,13 +43,13 @@ void Object::addChild(Object* child) {
 mat4 Object::calcRotationMatrixFromForward(vec3 target) {
   vec3 v = cross(mForward, target);
   float angle = glm::acos(dot(mForward, target) / (length(mForward) * length(target)));
-  return rotate(mat4(), angle, v);
+  return rotate(mat4(1.0f), angle, v);
 }
 
 void Object::calcModelMatrix() {
   mRotationMatrix = eulerAngleXYZ(mRotation.x, mRotation.y, mRotation.z);
 
-  mModelMatrix = translate(mat4(), mPosition);
+  mModelMatrix = translate(mat4(1.0f), mPosition);
   mModelMatrix = mModelMatrix * mRotationMatrix;
   mModelMatrix = glm::scale(mModelMatrix, mScale);
 
