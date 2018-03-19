@@ -163,6 +163,9 @@ void processInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS) {
     SceneManager::getInstance()->setCurrentScene("Deferred");
   }
+  if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
+    SceneManager::getInstance()->setCurrentScene("Fogged");
+  }
 
   if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && 
     SceneManager::getInstance()->getCurrentScene()->getName() == "Normal") {

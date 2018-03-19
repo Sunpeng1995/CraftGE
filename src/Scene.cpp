@@ -15,7 +15,7 @@ Scene::Scene(int width, int height, std::string scene_name, ShadingType st) :
   if (mShadingType == deferred) {
     setupGBuffer();
     gBufferShader = new Shader("shader/deferred/deferred_gbuffer.vert", "shader/deferred/deferred_gbuffer.frag");
-    gLightingShader = new Shader("shader/deferred/lighting_pass.vert", "shader/deferred/lighting_pass.frag");
+    gLightingShader = new Shader("shader/deferred/lighting_pass.vert", "shader/deferred/lighting_pass_fog.frag");
 
     float quadVertices[] = {
       // positions        // texture Coords
@@ -77,6 +77,10 @@ void Scene::addMesh(Mesh* mesh) {
 
 void Scene::addModel(Model* model) {
   mModels.push_back(model);
+}
+
+void Scene::addOtherTextures(Texture tex) {
+  mOtherTextures.push_back(tex);
 }
 
 void Scene::setLightingObject(Mesh* mesh) {
@@ -456,6 +460,14 @@ void Scene::drawGBufferInQuad() {
   gLightingShader->setInt("gNormal", 1);
   gLightingShader->setInt("gAlbedoSpec", 2);
   gLightingShader->setVec3("viewPos", mCamera->getPos());
+  gLightingShader->setFloat("utime", glfwGetTime() / 20);
+  for (int i = 0; i < mOtherTextures.size(); i++) {
+    glActiveTexture(GL_TEXTURE0 + 4 + i);
+    gLightingShader->setInt(mOtherTextures[i].getName(), 4 + i);
+  }
+  if (mDirLight) {
+    mDirLight->passToShader(gLightingShader);
+  }
   for (auto l : mLights) {
     l->passToShader(gLightingShader);
   }

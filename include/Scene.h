@@ -38,6 +38,7 @@ public:
 
   void addMesh(Mesh* mesh);
   void addModel(Model* model);
+  void addOtherTextures(Texture tex);
   void setLightingObject(Mesh* mesh);
   void setObjectShader(Shader* shader);
   void setLightingShader(Shader* shader);
@@ -103,6 +104,7 @@ private:
   std::vector<Model*> mModels;
   //Mesh* mLightingObj;
   std::vector<Light*> mLights;
+  std::vector<Texture> mOtherTextures;
   DirLight* mDirLight;
   SpotLight* mFlashLight;
 
