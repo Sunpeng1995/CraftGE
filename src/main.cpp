@@ -75,9 +75,11 @@ int main() {
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
+  glEnable(GL_BLEND);
 
   SceneManager::getInstance()->setScreenSize(sWidth, sHeight);
   SceneManager::getInstance()->createAllExampleScenes();
+  SceneManager::getInstance()->setCurrentScene("Particles");
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
@@ -165,6 +167,9 @@ void processInput(GLFWwindow* window) {
   }
   if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
     SceneManager::getInstance()->setCurrentScene("Fogged");
+  }
+  if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
+      SceneManager::getInstance()->setCurrentScene("Particles");
   }
 
   if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && 

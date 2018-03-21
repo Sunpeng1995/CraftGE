@@ -71,6 +71,10 @@ Scene::~Scene() {
   }
 }
 
+void Scene::addObject(Object* object) {
+    mMeshes.push_back(object);
+}
+
 void Scene::addMesh(Mesh* mesh) {
   mMeshes.push_back(mesh);
 }
@@ -122,19 +126,33 @@ void Scene::addOtherLight(Light* light) {
 }
 
 void Scene::update() {
-  if (mCamera) mCamera->update();
+  if (lastTime == 0) {
+    lastTime = glfwGetTime();
+    lastRecordTime = lastTime;
+  }
+  currentTime = glfwGetTime();
+  delta_time = currentTime - lastRecordTime;
+  lastRecordTime = currentTime;
+  fps++;
+  if (currentTime - lastTime >= 1.0f) {
+    std::cout << fps << "frame per second" << std::endl;
+    fps = 0;
+    lastTime = currentTime;
+  }
 
-  if (mDirLight) mDirLight->update();
-  if (mFlashLight) mFlashLight->update();
+  if (mCamera) mCamera->update(delta_time);
+
+  if (mDirLight) mDirLight->update(delta_time);
+  if (mFlashLight) mFlashLight->update(delta_time);
   for (auto i : mLights) {
-    i->update();
+    i->update(delta_time);
   }
 
   for (auto i : mMeshes) {
-    i->update();
+    i->update(delta_time);
   }
   for (auto i : mModels) {
-    i->update();
+    i->update(delta_time);
   }
 }
 
@@ -213,23 +231,14 @@ void Scene::draw() {
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
 #endif // DEBUG
-
-  if (lastTime == 0) {
-    lastTime = glfwGetTime();
-  }
-  currentTime = glfwGetTime();
-  fps++;
-  if (currentTime - lastTime >= 1.0f) {
-    std::cout << fps << "frame per second" << std::endl;
-    fps = 0;
-    lastTime = currentTime;
-  }
 }
 
 void Scene::drawMeshes(Shader* shader) {
   shader->use();
   shader->setMat4("view", mCamera->view());
   shader->setMat4("projection", mCamera->projection());
+  shader->setVec3("camera_right", mCamera->getRight());
+  shader->setVec3("camera_up", mCamera->getUp());
 
   shader->setVec3("viewPos", mCamera->getPos());
   shader->setFloat("material.shininess", 32.0f);

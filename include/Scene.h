@@ -36,6 +36,7 @@ public:
     mHeight = height;
   }
 
+  void addObject(Object* object);
   void addMesh(Mesh* mesh);
   void addModel(Model* model);
   void addOtherTextures(Texture tex);
@@ -56,6 +57,10 @@ public:
 
   inline Camera& getCamera() {
     return *mCamera;
+  }
+
+  inline Camera* getCameraPointer() {
+      return mCamera;
   }
 
   inline void setLineModeOn() {
@@ -100,7 +105,7 @@ private:
   Shader *mPointDepthShader, *mPointShadowShader;
   std::vector<glm::mat4> mPointLightSpaceMatrix;
 
-  std::vector<Mesh*> mMeshes;
+  std::vector<Object*> mMeshes;
   std::vector<Model*> mModels;
   //Mesh* mLightingObj;
   std::vector<Light*> mLights;
@@ -120,6 +125,7 @@ private:
 
   int fps = 0;
   double lastTime = 0, currentTime;
+  double delta_time, lastRecordTime;
 
   //Debug
 #ifdef DEBUG

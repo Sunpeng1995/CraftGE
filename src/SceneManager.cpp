@@ -421,8 +421,8 @@ void SceneManager::createDeferredShadingScene() {
 void SceneManager::createFoggedScene() {
   Scene* shadowScene = new Scene(mScreenWidth, mScreenHeight, "Fogged", Scene::deferred);
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-  Texture tex1("res/wood.png", "texture_diffuse");
-  Texture tex2("res/wood.png", "texture_specular");
+  Texture tex1("res/textures/wood.png", "texture_diffuse");
+  Texture tex2("res/textures/wood.png", "texture_specular");
   Texture noise("res/fog_noise.jpg", "fogNoise");
   shadowScene->addOtherTextures(noise);
 
@@ -457,15 +457,29 @@ void SceneManager::createFoggedScene() {
   addScene(shadowScene);
 }
 
+void SceneManager::createParticlesScene() {
+    auto particle_scene = new Scene(mScreenWidth, mScreenHeight, "Particles");
+    auto shader = new Shader("shader/particles/particles.vert", "shader/particles/particles.frag");
+
+    auto particles = new ParticleSystem("particles", glm::vec3(0, 0, -3.0f));
+
+    particle_scene->addObject(particles);
+    particle_scene->setObjectShader(shader);
+    particles->setCamera(particle_scene->getCameraPointer());
+
+    addScene(particle_scene);
+}
+
 void SceneManager::createAllExampleScenes() {
-  createBasicScene();
-  createLightingScene();
-  createModelScene();
-  createNormalScene();
-  createShadowScene();
-  createPointShadowScene();
-  createDeferredShadingScene();
-  createFoggedScene();
+  //createBasicScene();
+  //createLightingScene();
+  //createModelScene();
+  //createNormalScene();
+  //createShadowScene();
+  //createPointShadowScene();
+  //createDeferredShadingScene();
+  //createFoggedScene();
+  createParticlesScene();
 
   setCurrentScene("Basic");
 }

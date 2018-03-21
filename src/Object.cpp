@@ -77,11 +77,11 @@ void Object::updateFromParent() {
   }
 }
 
-void Object::update() {
+void Object::update(float delta_time) {
   if (updateFunc) {
     updateFunc(this);
   }
   for (auto i : mChildren) {
-    i->update();
+    i->update(delta_time);
   }
 }

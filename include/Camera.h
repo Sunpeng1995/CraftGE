@@ -69,6 +69,14 @@ public:
     return mForward;
   }
 
+  inline glm::vec3 getUp() {
+      return mUp;
+  }
+
+  inline glm::vec3 getRight() {
+      return mRight;
+  }
+
   inline int scrWidth() {
     return screenWidth;
   }

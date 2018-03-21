@@ -81,7 +81,7 @@ public:
   glm::mat4 calcRotationMatrixFromForward(glm::vec3 target);
 
   virtual void draw(Shader* shader) = 0;
-  virtual void update();
+  virtual void update(float delta_time);
   virtual shared_model_data* packSharedData() { return nullptr; }
 
 protected:

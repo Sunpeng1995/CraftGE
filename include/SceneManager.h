@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "Scene.h"
+#include "ParticleSystem.h"
 
 class SceneManager {
 public:
@@ -29,6 +30,7 @@ public:
   void createPointShadowScene();
   void createDeferredShadingScene();
   void createFoggedScene();
+  void createParticlesScene();
 
   void createAllExampleScenes();
 
