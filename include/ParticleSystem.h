@@ -49,6 +49,15 @@ public:
     void setSpeedDirVar(glm::vec3 speed_dir_var);
     void setSpeedDirVar(float speed_dir_var);
 
+    void setSpawnBoxWidth(float x);
+    void setSpawnBoxHeight(float y);
+    void setSpawnBoxLength(float z);
+    void setSpawnBoxSize(glm::vec3 size);
+    void setSpawnBoxSize(float size);
+    void setSpawnBoxSize(float x, float y, float z);
+
+    void setGravityNorm(float gravity_norm);
+
 private:
     static const int MAX_PARTICLES = 100000;
     Particle mParticleContainer[MAX_PARTICLES];
@@ -73,9 +82,12 @@ private:
     int debug_count = 0;
 
     int mNewParticlesPerSecond;
+    float mNewParticlesRemainder;
     float mLifeTime, mLifeTimeVar;
     float mSpeedNorm, mSpeedNormVar;
     glm::vec3 mSpeedDir, mSpeedDirVar;
+    //    X               Y                Z
+    float mSpawnBoxWidth, mSpawnBoxHeight, mSpawnBoxLength;
     float mGravityNorm;
     glm::vec3 mGravityDir;
 

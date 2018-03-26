@@ -463,6 +463,14 @@ void SceneManager::createParticlesScene() {
 
     auto particles = new ParticleSystem("particles", glm::vec3(0, 0, -3.0f));
 
+    particles->setSpeedDir(glm::vec3(0, 1.0f, 0));
+    particles->setSpeedDirVar(0.0f);
+    particles->setSpeedNorm(2.0f);
+    particles->setLifeTime(2.5f);
+    particles->setSpawnBoxSize(2.0f, 0.5f, 2.0f);
+    particles->setGravityNorm(0.0f);
+
+
     particle_scene->addObject(particles);
     particle_scene->setObjectShader(shader);
     particles->setCamera(particle_scene->getCameraPointer());

@@ -17,6 +17,7 @@ ParticleSystem::ParticleSystem(std::string name, glm::vec3 position) :
 
 ParticleSystem::ParticleSystem(std::string name, int max_particles, glm::vec3 position) :
     Object(position), mName(name), mLifeTime(2.0f), mLifeTimeVar(0.0f),
+    mSpawnBoxWidth(1.0f), mSpawnBoxHeight(1.0f), mSpawnBoxLength(1.0f),
     mSpeedNorm(1.0f), mSpeedNormVar(0.0f),
     mSpeedDir(glm::vec3(0, 1.0f, 0)), mSpeedDirVar(glm::vec3(0)),
     mGravityDir(glm::vec3(0, -1.0f, 0)), mGravityNorm(9.8f),
@@ -29,6 +30,7 @@ ParticleSystem::ParticleSystem(std::string name, int max_particles, glm::vec3 po
     }
     mLastUsedParticleIndex = 0;
     mNewParticlesPerSecond = mMaxParticles / 10;
+    mNewParticlesRemainder = 0;
 
     mShader = new Shader("shader/particles/particles.vert", "shader/particles/particles.frag");
 
@@ -124,29 +126,41 @@ int ParticleSystem::findUnusedParticle() {
 
 void ParticleSystem::respawnParticles(Particle &particle) {
     glm::vec3 offset;
-    offset.x = ((rand() % 100) - 50) / 100.0f;
-    offset.y = ((rand() % 100) - 50) / 100.0f;
-    offset.z = ((rand() % 100) - 50) / 100.0f;
+    offset.x = ((rand() % 100) - 50) / 50.0f * mSpawnBoxWidth;
+    offset.y = ((rand() % 100) - 50) / 50.0f * mSpawnBoxHeight;
+    offset.z = ((rand() % 100) - 50) / 50.0f * mSpawnBoxLength;
     glm::vec3 color;
     color.x = ((rand() % 255)) / 255.0f;
     color.y = ((rand() % 255)) / 255.0f;
     color.z = ((rand() % 255)) / 255.0f;
     glm::vec3 speedvar;
-    speedvar.x = ((rand() % 100) - 50) / 100.0f;
-    speedvar.y = ((rand() % 100) - 50) / 100.0f;
-    speedvar.z = ((rand() % 100) - 50) / 100.0f;
+    speedvar.x = ((rand() % 100) - 50) / 50.0f * mSpeedDirVar.x;
+    speedvar.y = ((rand() % 100) - 50) / 50.0f * mSpeedDirVar.y;
+    speedvar.z = ((rand() % 100) - 50) / 50.0f * mSpeedDirVar.z;
+    float speedNorm = mSpeedNorm + (((rand() % 100) - 50) / 50.0f) * mSpeedNormVar;
+    float lifeVar = ((rand() % 100) - 50) / 50.0f * mLifeTimeVar;
 
     particle.position = this->mPosition + offset * 0.4f;
     particle.size = 0.1f;
     particle.color = glm::vec4(color, 0.2f);
-    particle.speed = glm::vec3(0.0f, 3.0f, 0.0f) + speedvar * 1.0f;
-    particle.life = 2.5f;
+    particle.speed = speedNorm * mSpeedDir + speedvar;
+    particle.life = mLifeTime + lifeVar;
 }
 
 void ParticleSystem::generateNewParticles(float delta_time) {
-    int newparticles = (int)(delta_time * mNewParticlesPerSecond);
-    if (newparticles > (int)(0.01667f * mNewParticlesPerSecond)) {
-        newparticles = (int)(0.01667f * mNewParticlesPerSecond);
+    float newparticlesnum;
+    if (delta_time > 0.01667f) {
+        newparticlesnum = 0.01667f * mNewParticlesPerSecond;
+    }
+    else {
+        newparticlesnum = delta_time * mNewParticlesPerSecond;
+    }
+
+    int newparticles = (int)newparticlesnum;
+    mNewParticlesRemainder += newparticlesnum - newparticles;
+    if (mNewParticlesRemainder > 1.0f) {
+        newparticles++;
+        mNewParticlesRemainder -= 1.0f;
     }
 
     for (int i = 0; i < newparticles; i++) {
@@ -163,9 +177,8 @@ void ParticleSystem::fillBuffer(float delta_time) {
             p.life -= delta_time;
             
             if (p.life > 0.0f) {
-                p.speed += glm::vec3(0.0f, -9.8f, 0.0f) * delta_time * 0.3f;
+                p.speed += mGravityDir * mGravityNorm * delta_time;
                 p.position += p.speed * delta_time;
-                //p.camera_distance = p.position.z;
                 if (mCamera) p.camera_distance = glm::length(p.position - mCamera->getPos());
 
                 mParticlesPositionBuffer[4 * mParticleCount + 0] = p.position.x;
@@ -236,7 +249,7 @@ void ParticleSystem::setSpeedNormVar(float speed_norm_var) {
 }
 
 void ParticleSystem::setSpeedDir(glm::vec3 speed_dir) {
-    mSpeedDir = speed_dir;
+    mSpeedDir = glm::normalize(speed_dir);
 }
 
 void ParticleSystem::setSpeedDirVar(glm::vec3 speed_dir_var) {
@@ -244,5 +257,35 @@ void ParticleSystem::setSpeedDirVar(glm::vec3 speed_dir_var) {
 }
 
 void ParticleSystem::setSpeedDirVar(float speed_dir_var) {
-    mSpeedDirVar = glm::vec3(speed_dir_var);
+    setSpeedDirVar(glm::vec3(speed_dir_var));
+}
+
+void ParticleSystem::setSpawnBoxWidth(float x) {
+    if (x > 0.0f) mSpawnBoxWidth = x;
+}
+
+void ParticleSystem::setSpawnBoxHeight(float y) {
+    if (y > 0.0f) mSpawnBoxHeight = y;
+}
+
+void ParticleSystem::setSpawnBoxLength(float z) {
+    if (z > 0.0f) mSpawnBoxLength = z;
+}
+
+void ParticleSystem::setSpawnBoxSize(glm::vec3 size) {
+    setSpawnBoxSize(size.x, size.y, size.z);
+}
+
+void ParticleSystem::setSpawnBoxSize(float size) {
+    setSpawnBoxSize(size, size, size);
+}
+
+void ParticleSystem::setSpawnBoxSize(float x, float y, float z) {
+    setSpawnBoxWidth(x);
+    setSpawnBoxHeight(y);
+    setSpawnBoxLength(z);
+}
+
+void ParticleSystem::setGravityNorm(float gravity_norm) {
+    mGravityNorm = gravity_norm;
 }
