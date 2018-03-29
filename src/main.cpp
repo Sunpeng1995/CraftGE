@@ -23,15 +23,6 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-Scene* createBasicScene();
-Scene* createLightingScene();
-Scene* createModelScene();
-Scene* createNormalScene();
-Scene* createShadowScene();
-Scene* createPointShadowScene();
-Scene* createDeferredShadingScene();
-Scene* createForwardShadingScene();
-
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -79,7 +70,7 @@ int main() {
 
   SceneManager::getInstance()->setScreenSize(sWidth, sHeight);
   SceneManager::getInstance()->createAllExampleScenes();
-  SceneManager::getInstance()->setCurrentScene("Particles");
+  SceneManager::getInstance()->setCurrentScene("Fogged");
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);

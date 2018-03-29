@@ -132,8 +132,8 @@ void SceneManager::createLightingScene() {
 
   auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-  Texture tex1("res/textures/container2.png", "texture_diffuse");
-  Texture tex2("res/textures/container2_specular.png", "texture_specular");
+  Texture tex1("res/textures/mofang_color.png", "texture_diffuse");
+  Texture tex2("res/textures/mofang_specular.png", "texture_specular");
 
   for (int i = 0; i < 10; i++) {
     NormalledCube* obj = new NormalledCube(cubePositions[i]);
@@ -201,6 +201,11 @@ void SceneManager::createModelScene() {
   Model* cruiser = new Model("res/models/cruiser/cruiser.obj");
   cruiser->setPosition(glm::vec3(2.0f, 0.0f, 0.0f));
   ModelScene->addModel(cruiser);
+
+  Model* wan = new Model("res/models/wan/Wan.obj");
+  wan->setPosition(glm::vec3(0));
+  wan->setScale(0.1f);
+  ModelScene->addModel(wan);
 
   Model* f16 = new Model("res/models/f16/f16.obj");
   f16->setPosition(glm::vec3(-2.0f, 0.0f, 0.0f));
@@ -443,9 +448,6 @@ void SceneManager::createFoggedScene() {
   Plane* plane = new Plane(glm::vec3(0.0f, 0.25f, 0.0f));
   plane->addTexture(tex1);
   shadowScene->addMesh(plane);
-  //Plane* p2 = new Plane(glm::vec3(2.0f, 0.25f, 2.0f));
-  //p2->addTexture(tex1);
-  //shadowScene->addMesh(p2);
 
   auto dirLight = new DirLight(glm::vec3(2.0f, -4.0f, 1.0f));
   shadowScene->setDirLight(dirLight);
@@ -457,7 +459,6 @@ void SceneManager::createFoggedScene() {
 
 void SceneManager::createParticlesScene() {
     auto particle_scene = new Scene(mScreenWidth, mScreenHeight, "Particles");
-    auto shader = new Shader("shader/particles/particles.vert", "shader/particles/particles.frag");
     auto rain_shader = new Shader("shader/particles/rain.vert", "shader/particles/rain.frag");
 
     auto particles = new ParticleSystem("particles", 10000, glm::vec3(0, 3.0f, -3.0f));

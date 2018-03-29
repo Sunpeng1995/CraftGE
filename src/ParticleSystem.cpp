@@ -96,6 +96,8 @@ void ParticleSystem::draw(Shader* shader) {
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, mParticleCount);
 
+    glBlendFunc(GL_ONE, GL_ZERO);
+
     glBindVertexArray(0);
 }
 

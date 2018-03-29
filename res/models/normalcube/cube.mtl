@@ -9,6 +9,6 @@ newmtl cube
   Kd 0.5880 0.5880 0.5880
   Ks 1.0000 1.0000 1.0000
   Ke 0.0000 0.0000 0.0000
-  map_Ka brick_d.jpg
-  map_Kd brick_d.jpg
-  map_bump brick_n.jpg
+  map_Ka mofang_color.png
+  map_Kd mofang_color.png
+  map_bump mofang_normal.png
