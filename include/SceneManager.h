@@ -31,6 +31,7 @@ public:
   void createDeferredShadingScene();
   void createFoggedScene();
   void createParticlesScene();
+  void createParticlesAnimateScene();
 
   void createAllExampleScenes();
 

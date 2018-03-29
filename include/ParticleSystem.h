@@ -14,7 +14,8 @@ public:
     glm::vec4 color;
     glm::vec3 speed;
     float weight;
-    float life;
+    float life, life_len;
+    int period;
 
     float camera_distance;
 
@@ -58,11 +59,14 @@ public:
 
     void setGravityNorm(float gravity_norm);
 
+    void setTexturePeriod(int period);
+
 private:
     static const int MAX_PARTICLES = 100000;
     Particle mParticleContainer[MAX_PARTICLES];
     float mParticlesPositionBuffer[MAX_PARTICLES * 4];
     float mParticlesColorBuffer[MAX_PARTICLES * 4];
+    float mParticlesOthersBuffer[MAX_PARTICLES * 1];
     const float mVertexBufferData[12] = {
         -0.5f, -0.5f,  0.0f,
          0.5f, -0.5f,  0.0f,
@@ -70,7 +74,7 @@ private:
          0.5f,  0.5f,  0.0f
     };
     GLuint VAO;
-    GLuint quadVBO, positionsVBO, colorsVBO;
+    GLuint quadVBO, positionsVBO, colorsVBO, othersVBO;
     Shader* mShader;
     Texture mTexture;
     Camera* mCamera;
@@ -90,6 +94,8 @@ private:
     float mSpawnBoxWidth, mSpawnBoxHeight, mSpawnBoxLength;
     float mGravityNorm;
     glm::vec3 mGravityDir;
+
+    int mTexturePeriods;
 
     std::string mName;
 

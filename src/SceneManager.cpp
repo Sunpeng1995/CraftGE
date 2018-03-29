@@ -180,7 +180,7 @@ void SceneManager::createLightingScene() {
 
   auto spotLight = new SpotLight(-1, lightingScene->getCamera().getPos(), lightingScene->getCamera().getFront(),
     ambient, diffuse, specular, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f)));
-  lightingScene->setFlashLight(spotLight);
+  //lightingScene->setFlashLight(spotLight);
 
   lightingScene->setLightingShader(lightingShader);
 
@@ -240,8 +240,6 @@ void SceneManager::createNormalScene() {
 
   auto objectShader = new Shader("shader/object_n.vert", "shader/object_n.frag");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-  Texture tex1("res/textures/brick_d.jpg", "texture_diffuse");
-  Texture tex2("res/textures/brick_n.jpg", "texture_normal");
 
   lightingScene->setObjectShader(objectShader);
 
@@ -460,34 +458,63 @@ void SceneManager::createFoggedScene() {
 void SceneManager::createParticlesScene() {
     auto particle_scene = new Scene(mScreenWidth, mScreenHeight, "Particles");
     auto shader = new Shader("shader/particles/particles.vert", "shader/particles/particles.frag");
+    auto rain_shader = new Shader("shader/particles/rain.vert", "shader/particles/rain.frag");
 
-    auto particles = new ParticleSystem("particles", glm::vec3(0, 0, -3.0f));
+    auto particles = new ParticleSystem("particles", 10000, glm::vec3(0, 3.0f, -3.0f));
 
-    particles->setSpeedDir(glm::vec3(0, 1.0f, 0));
+    particles->setParticleTexture(Texture("res/textures/rain_texture.png", "particle"));
+
+    particles->setGenerateSpeed(1000);
+    particles->setSpeedDir(glm::vec3(0, -1.0f, 0));
     particles->setSpeedDirVar(0.0f);
     particles->setSpeedNorm(2.0f);
     particles->setLifeTime(2.5f);
-    particles->setSpawnBoxSize(2.0f, 0.5f, 2.0f);
+    particles->setSpawnBoxSize(15.0f, 0.5f, 15.0f);
     particles->setGravityNorm(0.0f);
 
 
     particle_scene->addObject(particles);
-    particle_scene->setObjectShader(shader);
+    particle_scene->setObjectShader(rain_shader);
     particles->setCamera(particle_scene->getCameraPointer());
 
     addScene(particle_scene);
 }
 
+void SceneManager::createParticlesAnimateScene() {
+    auto particle_scene = new Scene(mScreenWidth, mScreenHeight, "ParticlesAnimate");
+    auto animate_shader = new Shader("shader/particles/particles_mult_period.vert", "shader/particles/particles_mult_period.frag");
+
+    auto particles_animate = new ParticleSystem("particles", 1000, glm::vec3(0, 0, 0.0f));
+
+    particles_animate->setParticleTexture(Texture("res/textures/ParticleAtlas.png", "particle"));
+
+    particles_animate->setGenerateSpeed(1);
+    particles_animate->setSpeedNorm(0);
+    particles_animate->setLifeTime(1.0f);
+    particles_animate->setLifeTimeVar(0);
+    particles_animate->setSpawnBoxSize(2.0f, 2.0f, 0.5f);
+    particles_animate->setGravityNorm(0);
+    particles_animate->setTexturePeriod(64);
+
+    particles_animate->setCamera(particle_scene->getCameraPointer());
+
+    particle_scene->addObject(particles_animate);
+    particle_scene->setObjectShader(animate_shader);
+
+    addScene(particle_scene);
+}
+
 void SceneManager::createAllExampleScenes() {
-  //createBasicScene();
-  //createLightingScene();
-  //createModelScene();
-  //createNormalScene();
-  //createShadowScene();
-  //createPointShadowScene();
-  //createDeferredShadingScene();
-  //createFoggedScene();
+  createBasicScene();
+  createLightingScene();
+  createModelScene();
+  createNormalScene();
+  createShadowScene();
+  createPointShadowScene();
+  createDeferredShadingScene();
+  createFoggedScene();
   createParticlesScene();
+  createParticlesAnimateScene();
 
   setCurrentScene("Basic");
 }

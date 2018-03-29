@@ -171,6 +171,9 @@ void processInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
       SceneManager::getInstance()->setCurrentScene("Particles");
   }
+  if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
+      SceneManager::getInstance()->setCurrentScene("ParticlesAnimate");
+  }
 
   if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && 
     SceneManager::getInstance()->getCurrentScene()->getName() == "Normal") {

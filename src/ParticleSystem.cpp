@@ -21,7 +21,8 @@ ParticleSystem::ParticleSystem(std::string name, int max_particles, glm::vec3 po
     mSpeedNorm(1.0f), mSpeedNormVar(0.0f),
     mSpeedDir(glm::vec3(0, 1.0f, 0)), mSpeedDirVar(glm::vec3(0)),
     mGravityDir(glm::vec3(0, -1.0f, 0)), mGravityNorm(9.8f),
-    mTexture("res/textures/particle.png", "particle"){
+    mTexture("res/textures/particle.png", "particle"), 
+    mTexturePeriods(0) {
     if (max_particles < MAX_PARTICLES) {
         mMaxParticles = max_particles;
     }
@@ -48,6 +49,10 @@ ParticleSystem::ParticleSystem(std::string name, int max_particles, glm::vec3 po
     glGenBuffers(1, &colorsVBO);
     glBindBuffer(GL_ARRAY_BUFFER, colorsVBO);
     glBufferData(GL_ARRAY_BUFFER, mMaxParticles * 4 * sizeof(float), NULL, GL_STREAM_DRAW);
+
+    glGenBuffers(1, &othersVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, othersVBO);
+    glBufferData(GL_ARRAY_BUFFER, mMaxParticles * 1 * sizeof(float), NULL, GL_STREAM_DRAW);
 
     glBindVertexArray(0);
 
@@ -78,9 +83,14 @@ void ParticleSystem::draw(Shader* shader) {
     glBindBuffer(GL_ARRAY_BUFFER, colorsVBO);
     glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+    glEnableVertexAttribArray(3);
+    glBindBuffer(GL_ARRAY_BUFFER, othersVBO);
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
     glVertexAttribDivisor(0, 0);
     glVertexAttribDivisor(1, 1);
     glVertexAttribDivisor(2, 1);
+    glVertexAttribDivisor(3, 1);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -145,6 +155,7 @@ void ParticleSystem::respawnParticles(Particle &particle) {
     particle.color = glm::vec4(color, 0.2f);
     particle.speed = speedNorm * mSpeedDir + speedvar;
     particle.life = mLifeTime + lifeVar;
+    particle.life_len = particle.life;
 }
 
 void ParticleSystem::generateNewParticles(float delta_time) {
@@ -191,6 +202,9 @@ void ParticleSystem::fillBuffer(float delta_time) {
                 mParticlesColorBuffer[4 * mParticleCount + 2] = p.color.b;
                 mParticlesColorBuffer[4 * mParticleCount + 3] = p.color.a;
 
+                int period = (1.0f - p.life / p.life_len) * mTexturePeriods;
+                mParticlesOthersBuffer[mParticleCount] = period;
+
                 mParticleCount++;
             }
             else {
@@ -216,6 +230,10 @@ void ParticleSystem::updateBufferInGPU() {
     glBindBuffer(GL_ARRAY_BUFFER, colorsVBO);
     glBufferData(GL_ARRAY_BUFFER, mMaxParticles * 4 * sizeof(float), NULL, GL_STREAM_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, mParticleCount * 4 * sizeof(float), mParticlesColorBuffer);
+
+    glBindBuffer(GL_ARRAY_BUFFER, othersVBO);
+    glBufferData(GL_ARRAY_BUFFER, mMaxParticles * 1 * sizeof(float), NULL, GL_STREAM_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, mParticleCount * 1 * sizeof(float), mParticlesOthersBuffer);
 }
 
 void ParticleSystem::setShader(Shader* shader) {
@@ -288,4 +306,8 @@ void ParticleSystem::setSpawnBoxSize(float x, float y, float z) {
 
 void ParticleSystem::setGravityNorm(float gravity_norm) {
     mGravityNorm = gravity_norm;
+}
+
+void ParticleSystem::setTexturePeriod(int period) {
+    if (period > 0) mTexturePeriods = period;
 }
