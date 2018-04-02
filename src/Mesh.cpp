@@ -6,8 +6,8 @@ Mesh::Mesh() : Object(vec3(0)) {
 
 }
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures) :
-  Object(vec3(0)),
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures, int render_layer) :
+  Object(vec3(0)), mRenderLayer(render_layer),
   mVertices(vertices), mIndices(indices), mTextures(textures), mIndicesCount(indices.size())
 {
   glGenVertexArrays(1, &mVAO);
@@ -274,7 +274,7 @@ void NormalledCube::draw(Shader* shader) {
   glActiveTexture(GL_TEXTURE0);
 
   if (mReverse) {
-    glDisable(GL_CULL_FACE);
+      glFrontFace(GL_CW);
     shader->setBool("reverse_normals", true);
   }
   else {
@@ -284,7 +284,7 @@ void NormalledCube::draw(Shader* shader) {
   glDrawArrays(GL_TRIANGLES, 0, 36);
   glBindVertexArray(0);
   if (mReverse) {
-    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
   }
 
   for (auto i : mChildren) {

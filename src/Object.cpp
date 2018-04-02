@@ -17,7 +17,7 @@ Object::Object(vec3 position, vec3 rotation) :
 
 Object::Object(vec3 position, vec3 rotation, vec3 scale) :
   mPosition(position), mWorldPosition(position),
-  mRotation(rotation), mScale(scale), mParent(nullptr)
+  mRotation(rotation), mScale(scale), mParent(nullptr), mShader(new Shader())
 {
   mForward = vec3(0, 0, -1.0f);
   mUp = vec3(0, 1.0f, 0);

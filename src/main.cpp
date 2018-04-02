@@ -70,7 +70,7 @@ int main() {
 
   SceneManager::getInstance()->setScreenSize(sWidth, sHeight);
   SceneManager::getInstance()->createAllExampleScenes();
-  SceneManager::getInstance()->setCurrentScene("Fogged");
+  SceneManager::getInstance()->setCurrentScene("Basic");
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);

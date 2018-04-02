@@ -10,9 +10,9 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
+#include "Shader.h"
 #include "ModelManager.h"
 
-class Shader;
 
 class Object {
 public:
@@ -101,6 +101,8 @@ protected:
 
   std::vector<Object*> mChildren;
   Object* mParent;
+
+  Shader* mShader;
   
   Object(glm::vec3 position);
   Object(glm::vec3 position, glm::vec3 rotation);

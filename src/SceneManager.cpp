@@ -190,7 +190,7 @@ void SceneManager::createLightingScene() {
 void SceneManager::createModelScene() {
   auto ModelScene = new Scene(mScreenWidth, mScreenHeight, "Model");
 
-  auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
+  auto objectShader = new Shader("shader/object.vert", "shader/object_nospec.frag");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
 
   //Model* nanosuit = new Model("obj/nanosuit/nanosuit.obj");
@@ -202,9 +202,11 @@ void SceneManager::createModelScene() {
   cruiser->setPosition(glm::vec3(2.0f, 0.0f, 0.0f));
   ModelScene->addModel(cruiser);
 
-  Model* wan = new Model("res/models/wan/Wan.obj");
+  Model* wan = new Model("res/models/wanModels/wanModel.obj");
   wan->setPosition(glm::vec3(0));
   wan->setScale(0.1f);
+  wan->setCullFace(false);
+  wan->setOpaque(false);
   ModelScene->addModel(wan);
 
   Model* f16 = new Model("res/models/f16/f16.obj");
