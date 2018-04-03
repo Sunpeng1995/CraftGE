@@ -1,5 +1,7 @@
 #include "Model.h"
 
+#include "Scene.h"
+
 using namespace glm;
 
 Model::Model(char* path) : Object(vec3(0.0f)), mIsOpaque(true), mIsCullFace(true) {
@@ -12,7 +14,8 @@ Model::Model(char* path) : Object(vec3(0.0f)), mIsOpaque(true), mIsCullFace(true
   }
 }
 
-void Model::draw(Shader* shader) {
+void Model::draw(Scene* context) {
+    context->passContextToShader(getShader());
     if (!mIsOpaque) {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
@@ -21,8 +24,9 @@ void Model::draw(Shader* shader) {
     }
 
   for (auto i : mChildren) {
-    i->draw(shader);
+    i->draw(context);
   }
+
     if (!mIsOpaque) {
         glBlendFunc(GL_ONE, GL_ZERO);
     }

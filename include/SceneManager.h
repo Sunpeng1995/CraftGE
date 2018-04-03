@@ -4,6 +4,7 @@
 #include <vector>
 #include "Scene.h"
 #include "ParticleSystem.h"
+#include "Mesh.h"
 
 class SceneManager {
 public:

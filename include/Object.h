@@ -13,6 +13,7 @@
 #include "Shader.h"
 #include "ModelManager.h"
 
+class Scene;
 
 class Object {
 public:
@@ -78,9 +79,15 @@ public:
     mParent = parent;
   }
 
+  inline void setShader(Shader* shader) {
+      mShader = shader;
+  }
+
+  Shader* getShader();
+
   glm::mat4 calcRotationMatrixFromForward(glm::vec3 target);
 
-  virtual void draw(Shader* shader) = 0;
+  virtual void draw(Scene* context) = 0;
   virtual void update(float delta_time);
   virtual shared_model_data* packSharedData() { return nullptr; }
 

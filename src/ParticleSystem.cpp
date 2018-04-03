@@ -1,5 +1,7 @@
 #include "ParticleSystem.h"
 
+#include "Scene.h"
+
 ParticleSystem::ParticleSystem(std::string name) : 
     ParticleSystem(name, MAX_PARTICLES) {
 
@@ -63,11 +65,12 @@ ParticleSystem::ParticleSystem(std::string name, int max_particles, glm::vec3 po
     srand(42);
 }
 
-void ParticleSystem::draw(Shader* shader) {
+void ParticleSystem::draw(Scene* context) {
+    context->passContextToShader(mShader);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, mTexture.getTextureID());
-    shader->setInt("particle_texture", 0);
+    mShader->setInt("particle_texture", 0);
 
     glBindVertexArray(VAO);
 

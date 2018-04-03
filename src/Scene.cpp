@@ -3,9 +3,7 @@
 Scene::Scene(int width, int height, std::string scene_name, ShadingType st) : 
   mWidth(width), mHeight(height), mShadingType(st), mName(scene_name) {
   mCamera = new Camera(width, height);
-  mShader = new Shader();
   mSkybox = nullptr;
-  mLightingShader = nullptr;
   mDepthShader = nullptr;
   mShadowShader = nullptr;
   mPointDepthShader = nullptr;
@@ -61,7 +59,6 @@ Scene::Scene(int width, int height, std::string scene_name, ShadingType st) :
 
 Scene::~Scene() {
   delete mCamera;
-  delete mShader;
 
   for (int i = 0; i < mMeshes.size(); i++) {
     delete mMeshes[i];
@@ -89,18 +86,6 @@ void Scene::addOtherTextures(Texture tex) {
 
 void Scene::setLightingObject(Mesh* mesh) {
   //mLightingObj = mesh;
-}
-
-void Scene::setObjectShader(Shader* shader) {
-  Shader* oldShader = mShader;
-  mShader = shader;
-  if (oldShader) delete oldShader;
-}
-
-void Scene::setLightingShader(Shader* shader) {
-  Shader* oldShader = mLightingShader;
-  mLightingShader = shader;
-  if (oldShader) delete oldShader;
 }
 
 void Scene::setDirLight(DirLight* light) {
@@ -160,7 +145,7 @@ void Scene::draw() {
   // Forward shading
   if (mShadingType == forward) {
 
-  drawLightings(mLightingShader);
+  drawLightings();
 
     if (shadowEnable) {
       drawToDepthMap();
@@ -181,7 +166,7 @@ void Scene::draw() {
       drawMeshes(mPointShadowShader);
     }
     if (!pointShadowEnable && !shadowEnable) {
-      drawMeshes(mShader);
+      drawMeshes();
     }
   }
 
@@ -211,7 +196,7 @@ void Scene::draw() {
     glBlitFramebuffer(0, 0, mWidth, mHeight, 0, 0, mWidth, mHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    drawLightings(mLightingShader);
+    drawLightings();
 
   }
 #ifndef DEBUG
@@ -233,7 +218,7 @@ void Scene::draw() {
 #endif // DEBUG
 }
 
-void Scene::drawMeshes(Shader* shader) {
+void Scene::passContextToShader(Shader* shader) {
   shader->use();
   shader->setMat4("view", mCamera->view());
   shader->setMat4("projection", mCamera->projection());
@@ -255,26 +240,39 @@ void Scene::drawMeshes(Shader* shader) {
     mFlashLight->updateFlashLight(mCamera->getPos(), mCamera->getFront());
     mFlashLight->passToShader(shader);
   }
+}
 
+void Scene::drawMeshes(Shader* shader) {
+    passContextToShader(shader);
+
+    drawMeshes();
+}
+
+void Scene::drawMeshes() {
   for (auto m : mMeshes) {
-    m->draw(shader);
+    m->draw(this);
   }
 
   for (auto m : mModels) {
-    m->draw(shader);
+    m->draw(this);
   }
 }
 
 void Scene::drawLightings(Shader* shader) {
   if (!shader) return;
-  shader->use();
-  shader->setMat4("view", mCamera->view());
-  shader->setMat4("projection", mCamera->projection());
+  //shader->use();
+  //shader->setMat4("view", mCamera->view());
+  //shader->setMat4("projection", mCamera->projection());
+
+  passContextToShader(shader);
 
   //mLightingObj->draw(shader);
+  drawLightings();
+}
+
+void Scene::drawLightings() {
   for (auto l : mLights) {
-    shader->setVec3("color", l->getColor());
-    l->draw(shader);
+    l->draw(this);
   }
 }
 

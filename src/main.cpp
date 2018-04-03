@@ -169,12 +169,10 @@ void processInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && 
     SceneManager::getInstance()->getCurrentScene()->getName() == "Normal") {
     auto objectShader = new Shader("shader/object_n.vert", "shader/object_n.frag");
-    scene->setObjectShader(objectShader);
   }
   if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS &&
     SceneManager::getInstance()->getCurrentScene()->getName() == "Normal") {
     auto objectShader = new Shader("shader/object.vert", "shader/object.frag");
-    scene->setObjectShader(objectShader);
   }
 }
 

@@ -15,6 +15,7 @@ Light::Light(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular) :
 
 void Light::setLightMesh(Mesh* mesh) {
   mLightMesh = mesh;
+  mLightMesh->setParent(this);
 }
 
 void Light::setAmbient(glm::vec3 ambient) {
@@ -72,7 +73,7 @@ void DirLight::passToShader(Shader* shader) {
   shader->setVec3("dirLight.specular", mSpecular);
 }
 
-void DirLight::draw(Shader* shader) {
+void DirLight::draw(Scene* context) {
 
 }
 
@@ -131,10 +132,11 @@ void PointLight::passToShader(Shader* shader) {
   shader->setFloat(mName + "quadratic", mQuadratic);
 }
 
-void PointLight::draw(Shader* shader) {
-  if (mLightMesh) {
-    mLightMesh->draw(shader);
-  }
+void PointLight::draw(Scene* context) {
+    if (mLightMesh) {
+        mLightMesh->getShader()->setVec3("color", getColor());
+        mLightMesh->draw(context);
+    }
 }
 
 ///////////////////////////////////////
@@ -192,7 +194,7 @@ void SpotLight::passToShader(Shader* shader) {
   shader->setFloat(mName + "outerCutOff", mOuterCutOff);
 }
 
-void SpotLight::draw(Shader* shader) {
+void SpotLight::draw(Scene* context) {
 
 }
 

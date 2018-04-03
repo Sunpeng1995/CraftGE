@@ -1,5 +1,7 @@
 #include "Mesh.h"
 
+#include "Scene.h"
+
 using namespace glm;
 
 Mesh::Mesh() : Object(vec3(0)) {
@@ -44,8 +46,9 @@ Mesh::Mesh(shared_model_data* data) : Object(vec3(0)) {
   }
 }
 
-void Mesh::draw(Shader* shader) {
-  shader->setMat4("model", mParentModelMatrix * mModelMatrix);
+void Mesh::draw(Scene* context) {
+    context->passContextToShader(getShader());
+  getShader()->setMat4("model", mParentModelMatrix * mModelMatrix);
 
   unsigned int diffuseNr = 0;
   unsigned int specularNr = 0;
@@ -58,7 +61,7 @@ void Mesh::draw(Shader* shader) {
     if (name == "texture_specular") ss << specularNr++;
     if (name == "texture_normal") ss << normalNr++;
     
-    shader->setInt("material." + name + ss.str(), i);
+    getShader()->setInt("material." + name + ss.str(), i);
     glBindTexture(GL_TEXTURE_2D, mTextures[i].getTextureID());
   }
   glActiveTexture(GL_TEXTURE0);
@@ -67,7 +70,7 @@ void Mesh::draw(Shader* shader) {
   glDrawElements(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0);
 
   for (auto i : mChildren) {
-    i->draw(shader);
+    i->draw(context);
   }
 }
 
@@ -159,15 +162,17 @@ Cube::Cube(glm::vec3 pos) : mRotateAngle(0.0f), mRotateAxis(glm::vec3(0.0f, 1.0f
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Cube::draw(Shader* shader) {
-  shader->setMat4("model", mParentModelMatrix * mModelMatrix);
+void Cube::draw(Scene* context) {
+    context->passContextToShader(getShader());
+
+  getShader()->setMat4("model", mParentModelMatrix * mModelMatrix);
 
 
   unsigned int textureNr = 0;
   for (unsigned int i = 0; i < mTextures.size(); i++) {
     glActiveTexture(GL_TEXTURE0 + i);
     
-    shader->setInt("texture" + std::to_string(i), i);
+    getShader()->setInt("texture" + std::to_string(i), i);
     glBindTexture(GL_TEXTURE_2D, mTextures[i].getTextureID());
   }
   glActiveTexture(GL_TEXTURE0);
@@ -177,7 +182,7 @@ void Cube::draw(Shader* shader) {
   glBindVertexArray(0);
 
   for (auto i : mChildren) {
-    i->draw(shader);
+    i->draw(context);
   }
 }
 
@@ -253,9 +258,9 @@ NormalledCube::NormalledCube(glm::vec3 pos) : mRotateAngle(0.0f), mRotateAxis(gl
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void NormalledCube::draw(Shader* shader) {
-  auto mat = mParentModelMatrix * mModelMatrix;
-  shader->setMat4("model", mParentModelMatrix * mModelMatrix);
+void NormalledCube::draw(Scene* context) {
+    context->passContextToShader(getShader());
+  getShader()->setMat4("model", mParentModelMatrix * mModelMatrix);
 
   unsigned int diffuseNr = 0;
   unsigned int specularNr = 0;
@@ -268,17 +273,17 @@ void NormalledCube::draw(Shader* shader) {
     if (name == "texture_specular") ss << specularNr++;
     if (name == "texture_normal") ss << normalNr++;
     
-    shader->setInt("material." + name + ss.str(), i);
+    getShader()->setInt("material." + name + ss.str(), i);
     glBindTexture(GL_TEXTURE_2D, mTextures[i].getTextureID());
   }
   glActiveTexture(GL_TEXTURE0);
 
   if (mReverse) {
       glFrontFace(GL_CW);
-    shader->setBool("reverse_normals", true);
+    getShader()->setBool("reverse_normals", true);
   }
   else {
-    shader->setBool("reverse_normals", false);
+    getShader()->setBool("reverse_normals", false);
   }
   glBindVertexArray(mVAO);
   glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -288,7 +293,7 @@ void NormalledCube::draw(Shader* shader) {
   }
 
   for (auto i : mChildren) {
-    i->draw(shader);
+    i->draw(context);
   }
 }
 
@@ -329,8 +334,9 @@ Plane::Plane(glm::vec3 pos) {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Plane::draw(Shader* shader) {
-  shader->setMat4("model", mParentModelMatrix * mModelMatrix);
+void Plane::draw(Scene* context) {
+    context->passContextToShader(getShader());
+  getShader()->setMat4("model", mParentModelMatrix * mModelMatrix);
 
   unsigned int diffuseNr = 0;
   unsigned int specularNr = 0;
@@ -343,7 +349,7 @@ void Plane::draw(Shader* shader) {
     if (name == "texture_specular") ss << specularNr++;
     if (name == "texture_normal") ss << normalNr++;
     
-    shader->setInt("material." + name + ss.str(), i);
+    getShader()->setInt("material." + name + ss.str(), i);
     glBindTexture(GL_TEXTURE_2D, mTextures[i].getTextureID());
   }
   glActiveTexture(GL_TEXTURE0);
@@ -353,6 +359,6 @@ void Plane::draw(Shader* shader) {
   glBindVertexArray(0);
 
   for (auto i : mChildren) {
-    i->draw(shader);
+    i->draw(context);
   }
 }

@@ -80,9 +80,12 @@ void SceneManager::createBasicScene() {
   Texture tex1("res/textures/container.jpg", "normal");
   Texture tex2("res/textures/awesomeface.png", "normal");
 
+  Shader* shader = new Shader();
+
   //basicScene->setSkybox(new Skybox("res/skybox"));
 
   Cube* cube = new Cube(cubePositions[0]);
+  cube->setShader(shader);
   cube->addTexture(tex1);
   cube->addTexture(tex2);
   cube->setScale(0.5f);
@@ -100,6 +103,7 @@ void SceneManager::createBasicScene() {
   });
 
   Cube* subCube = new Cube(cubePositions[0]);
+  subCube->setShader(shader);
   subCube->addTexture(tex1);
   subCube->addTexture(tex2);
   subCube->setPosition(glm::vec3(5.0f, 0, 0));
@@ -114,6 +118,7 @@ void SceneManager::createBasicScene() {
   });
 
   Cube* subSubCube = new Cube(cubePositions[0]);
+  subSubCube->setShader(shader);
   subSubCube->addTexture(tex1);
   subSubCube->addTexture(tex2);
   subSubCube->setPos(glm::vec3(0, 5.0f, 0));
@@ -137,6 +142,7 @@ void SceneManager::createLightingScene() {
 
   for (int i = 0; i < 10; i++) {
     NormalledCube* obj = new NormalledCube(cubePositions[i]);
+    obj->setShader(objectShader);
     obj->addTexture(tex1);
     obj->addTexture(tex2);
     obj->setScale(0.5f);
@@ -154,7 +160,6 @@ void SceneManager::createLightingScene() {
       o->setRotation(rotate);
     });
   }
-  lightingScene->setObjectShader(objectShader);
 
   glm::vec3 ambient(0.1f, 0.1f, 0.1f);
   glm::vec3 diffuse(0.5f, 0.5f, 0.5f);
@@ -172,6 +177,7 @@ void SceneManager::createLightingScene() {
 
   for (int i = 0; i < 4; i++) {
     auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
+    pointLight->setShader(lightingShader);
     Cube* light = new Cube(pointLightPositions[i]);
     light->setScale(0.2f);
     pointLight->setLightMesh(light);
@@ -182,27 +188,23 @@ void SceneManager::createLightingScene() {
     ambient, diffuse, specular, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f)));
   //lightingScene->setFlashLight(spotLight);
 
-  lightingScene->setLightingShader(lightingShader);
-
   addScene(lightingScene);
 }
 
 void SceneManager::createModelScene() {
   auto ModelScene = new Scene(mScreenWidth, mScreenHeight, "Model");
 
-  auto objectShader = new Shader("shader/object.vert", "shader/object_nospec.frag");
+  auto nospecShader = new Shader("shader/object.vert", "shader/object_nospec.frag");
+  auto specShader = new Shader("shader/object.vert", "shader/object.frag");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
 
-  //Model* nanosuit = new Model("obj/nanosuit/nanosuit.obj");
-  //nanosuit->setPosition(glm::vec3(0.0f, -1.0f, 0.0f));
-  //nanosuit->setScale(0.1f);
-  //ModelScene->addModel(nanosuit);
-
   Model* cruiser = new Model("res/models/cruiser/cruiser.obj");
+  cruiser->setShader(specShader);
   cruiser->setPosition(glm::vec3(2.0f, 0.0f, 0.0f));
   ModelScene->addModel(cruiser);
 
   Model* wan = new Model("res/models/wanModels/wanModel.obj");
+  wan->setShader(nospecShader);
   wan->setPosition(glm::vec3(0));
   wan->setScale(0.1f);
   wan->setCullFace(false);
@@ -210,10 +212,9 @@ void SceneManager::createModelScene() {
   ModelScene->addModel(wan);
 
   Model* f16 = new Model("res/models/f16/f16.obj");
+  f16->setShader(specShader);
   f16->setPosition(glm::vec3(-2.0f, 0.0f, 0.0f));
   ModelScene->addModel(f16);
-
-  ModelScene->setObjectShader(objectShader);
 
   glm::vec3 ambient(0.1f, 0.1f, 0.1f);
   glm::vec3 diffuse(0.5f, 0.5f, 0.5f);
@@ -231,13 +232,12 @@ void SceneManager::createModelScene() {
 
   for (int i = 0; i < 4; i++) {
     auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
+    pointLight->setShader(lightingShader);
     Cube* light = new Cube(pointLightPositions[i]);
     light->setScale(0.2f);
     pointLight->setLightMesh(light);
     ModelScene->addOtherLight(pointLight);
   }
-
-  ModelScene->setLightingShader(lightingShader);
 
   addScene(ModelScene);
 }
@@ -248,10 +248,9 @@ void SceneManager::createNormalScene() {
   auto objectShader = new Shader("shader/object_n.vert", "shader/object_n.frag");
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
 
-  lightingScene->setObjectShader(objectShader);
-
   for (int i = 0; i < 10; i++) {
     Model* m = new Model("res/models/normalcube/cube.obj");
+    m->setShader(objectShader);
     m->setPosition(cubePositions[i]);
     lightingScene->addModel(m);
     m->updateRegister([=](Object* o){
@@ -284,13 +283,12 @@ void SceneManager::createNormalScene() {
 
   for (int i = 0; i < 4; i++) {
     auto pointLight = new PointLight(i, pointLightPositions[i], ambient, diffuse, specular, 1.0f, 0.09f, 0.032f);
+    pointLight->setShader(lightingShader);
     Cube* light = new Cube(pointLightPositions[i]);
     light->setScale(0.2f);
     pointLight->setLightMesh(light);
     lightingScene->addOtherLight(pointLight);
   }
-
-  lightingScene->setLightingShader(lightingShader);
 
   addScene(lightingScene);
 }
@@ -310,7 +308,7 @@ void SceneManager::createShadowScene() {
 
   for (int i = 0; i < 3; i++) {
     NormalledCube* obj = new NormalledCube(cubepos[i]);
-    //obj->setRotate(i * 10.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+    obj->setShader(objectShader);
     obj->addTexture(tex1);
     obj->addTexture(tex2);
     obj->setScale(0.25f);
@@ -320,14 +318,13 @@ void SceneManager::createShadowScene() {
     shadowScene->addMesh(obj);
   }
   Plane* plane = new Plane(glm::vec3(0.0f, 0.25f, 0.0f));
+  plane->setShader(objectShader);
   plane->addTexture(tex1);
   //plane->addTexture(tex2);
   shadowScene->addMesh(plane);
-  shadowScene->setObjectShader(objectShader);
 
   auto dirLight = new DirLight(glm::vec3(2.0f, -4.0f, 1.0f));
   shadowScene->setDirLight(dirLight);
-  shadowScene->setLightingShader(lightingShader);
 
   shadowScene->enableShadow(Scene::ShadowType::parallel);
 
@@ -376,7 +373,6 @@ void SceneManager::createPointShadowScene() {
   });
 
   pointShadowScene->addOtherLight(pointLight);
-  pointShadowScene->setLightingShader(lightingShader);
 
   pointShadowScene->enableShadow(Scene::ShadowType::point);
 
@@ -418,7 +414,6 @@ void SceneManager::createDeferredShadingScene() {
   }
 
   auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
-  ds_scene->setLightingShader(lightingShader);
 
   addScene(ds_scene);
 }
@@ -454,8 +449,6 @@ void SceneManager::createFoggedScene() {
   auto dirLight = new DirLight(glm::vec3(2.0f, -4.0f, 1.0f));
   shadowScene->setDirLight(dirLight);
 
-  shadowScene->setLightingShader(lightingShader);
-
   addScene(shadowScene);
 }
 
@@ -464,6 +457,7 @@ void SceneManager::createParticlesScene() {
     auto rain_shader = new Shader("shader/particles/rain.vert", "shader/particles/rain.frag");
 
     auto particles = new ParticleSystem("particles", 10000, glm::vec3(0, 3.0f, -3.0f));
+    particles->setShader(rain_shader);
 
     particles->setParticleTexture(Texture("res/textures/rain_texture.png", "particle"));
 
@@ -475,9 +469,7 @@ void SceneManager::createParticlesScene() {
     particles->setSpawnBoxSize(15.0f, 0.5f, 15.0f);
     particles->setGravityNorm(0.0f);
 
-
     particle_scene->addObject(particles);
-    particle_scene->setObjectShader(rain_shader);
     particles->setCamera(particle_scene->getCameraPointer());
 
     addScene(particle_scene);
@@ -488,6 +480,7 @@ void SceneManager::createParticlesAnimateScene() {
     auto animate_shader = new Shader("shader/particles/particles_mult_period.vert", "shader/particles/particles_mult_period.frag");
 
     auto particles_animate = new ParticleSystem("particles", 1000, glm::vec3(0, 0, 0.0f));
+    particles_animate->setShader(animate_shader);
 
     particles_animate->setParticleTexture(Texture("res/textures/ParticleAtlas.png", "particle"));
 
@@ -502,7 +495,6 @@ void SceneManager::createParticlesAnimateScene() {
     particles_animate->setCamera(particle_scene->getCameraPointer());
 
     particle_scene->addObject(particles_animate);
-    particle_scene->setObjectShader(animate_shader);
 
     addScene(particle_scene);
 }
@@ -512,10 +504,10 @@ void SceneManager::createAllExampleScenes() {
   createLightingScene();
   createModelScene();
   createNormalScene();
-  createShadowScene();
-  createPointShadowScene();
-  createDeferredShadingScene();
-  createFoggedScene();
+  //createShadowScene();
+  //createPointShadowScene();
+  //createDeferredShadingScene();
+  //createFoggedScene();
   createParticlesScene();
   createParticlesAnimateScene();
 

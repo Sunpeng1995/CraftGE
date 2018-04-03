@@ -16,7 +16,7 @@ class Model : public Object {
 public:
   Model(char* path);
   //Model(Mesh* mesh);
-  virtual void draw(Shader* shader);
+  virtual void draw(Scene* context);
 
   void saveToShared(std::string path);
   void loadFromShared(std::string path);

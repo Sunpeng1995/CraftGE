@@ -41,8 +41,6 @@ public:
   void addModel(Model* model);
   void addOtherTextures(Texture tex);
   void setLightingObject(Mesh* mesh);
-  void setObjectShader(Shader* shader);
-  void setLightingShader(Shader* shader);
   void setSkybox(Skybox* skybox);
   void draw();
   void update();
@@ -54,6 +52,8 @@ public:
   void enableShadow(ShadowType mode);
   void disableShadow();
   void drawToDepthMap();
+
+  void passContextToShader(Shader* shader);
 
   inline Camera& getCamera() {
     return *mCamera;
@@ -86,7 +86,6 @@ private:
   bool enableFlashLight = true;
   int mWidth, mHeight;
   Camera* mCamera;
-  Shader* mShader, *mLightingShader;
   Skybox* mSkybox;
 
   // Shadow
@@ -134,7 +133,9 @@ private:
 #endif // DEBUG
 
   void drawMeshes(Shader* shader);
+  void drawMeshes();
   void drawLightings(Shader* shader);
+  void drawLightings();
 };
 
 #endif // !__SCENE_H__

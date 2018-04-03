@@ -32,7 +32,7 @@ public:
     ParticleSystem(std::string name, int max_particles);
     ParticleSystem(std::string name, glm::vec3 position);
     ParticleSystem(std::string name, int max_particles, glm::vec3 position);
-    virtual void draw(Shader* shader);
+    virtual void draw(Scene* context);
     virtual void update(float delta_time);
     void setShader(Shader* shader);
     void setParticleTexture(Texture texture);

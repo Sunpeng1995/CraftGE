@@ -29,7 +29,7 @@ class Camera :public Object {
 public:
   Camera(int width, int height);
   Camera(int width, int height, glm::vec3 initPos);
-  virtual void draw(Shader* shader) 
+  virtual void draw(Scene* context) 
   {
   }
 
