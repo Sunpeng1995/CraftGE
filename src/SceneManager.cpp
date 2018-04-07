@@ -405,6 +405,7 @@ void SceneManager::createDeferredShadingScene() {
     lightColors.push_back(glm::vec3(r, g, b));
   }
 
+
   for (int i = 0; i < lightCount; i++) {
     auto pointLight = new PointLight(i, lightPositions[i], glm::vec3(0.1f), lightColors[i], lightColors[i], 1.0, 0.7, 1.8);
     auto lightcube = new Cube(lightPositions[i]);
@@ -413,7 +414,6 @@ void SceneManager::createDeferredShadingScene() {
     ds_scene->addOtherLight(pointLight);
   }
 
-  auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
 
   addScene(ds_scene);
 }
@@ -504,8 +504,8 @@ void SceneManager::createAllExampleScenes() {
   createLightingScene();
   createModelScene();
   createNormalScene();
-  //createShadowScene();
-  //createPointShadowScene();
+  createShadowScene();
+  createPointShadowScene();
   //createDeferredShadingScene();
   //createFoggedScene();
   createParticlesScene();

@@ -47,7 +47,14 @@ Mesh::Mesh(shared_model_data* data) : Object(vec3(0)) {
 }
 
 void Mesh::draw(Scene* context) {
-    context->passContextToShader(getShader());
+    if (!mParent) {
+        context->passContextToShader(getShader());
+    }
+    else {
+        if (getShader()->getShaderID() != mParent->getShader()->getShaderID()) {
+            context->passContextToShader(getShader());
+        }
+    }
   getShader()->setMat4("model", mParentModelMatrix * mModelMatrix);
 
   unsigned int diffuseNr = 0;
@@ -163,7 +170,14 @@ Cube::Cube(glm::vec3 pos) : mRotateAngle(0.0f), mRotateAxis(glm::vec3(0.0f, 1.0f
 }
 
 void Cube::draw(Scene* context) {
-    context->passContextToShader(getShader());
+    if (!mParent) {
+        context->passContextToShader(getShader());
+    }
+    else {
+        if (getShader()->getShaderID() != mParent->getShader()->getShaderID()) {
+            context->passContextToShader(getShader());
+        }
+    }
 
   getShader()->setMat4("model", mParentModelMatrix * mModelMatrix);
 
@@ -259,7 +273,14 @@ NormalledCube::NormalledCube(glm::vec3 pos) : mRotateAngle(0.0f), mRotateAxis(gl
 }
 
 void NormalledCube::draw(Scene* context) {
-    context->passContextToShader(getShader());
+    if (!mParent) {
+        context->passContextToShader(getShader());
+    }
+    else {
+        if (getShader()->getShaderID() != mParent->getShader()->getShaderID()) {
+            context->passContextToShader(getShader());
+        }
+    }
   getShader()->setMat4("model", mParentModelMatrix * mModelMatrix);
 
   unsigned int diffuseNr = 0;
@@ -335,7 +356,14 @@ Plane::Plane(glm::vec3 pos) {
 }
 
 void Plane::draw(Scene* context) {
-    context->passContextToShader(getShader());
+    if (!mParent) {
+        context->passContextToShader(getShader());
+    }
+    else {
+        if (getShader()->getShaderID() != mParent->getShader()->getShaderID()) {
+            context->passContextToShader(getShader());
+        }
+    }
   getShader()->setMat4("model", mParentModelMatrix * mModelMatrix);
 
   unsigned int diffuseNr = 0;

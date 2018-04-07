@@ -1,5 +1,7 @@
 #include "Light.h"
 
+#include "Scene.h"
+
 using namespace glm;
 
 Light::Light() : Light(glm::vec3(0.2f), glm::vec3(0.5f), glm::vec3(1.0f)) {
@@ -134,6 +136,7 @@ void PointLight::passToShader(Shader* shader) {
 
 void PointLight::draw(Scene* context) {
     if (mLightMesh) {
+        context->passContextToShader(mLightMesh->getShader());
         mLightMesh->getShader()->setVec3("color", getColor());
         mLightMesh->draw(context);
     }

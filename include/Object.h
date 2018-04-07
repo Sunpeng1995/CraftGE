@@ -83,6 +83,13 @@ public:
       mShader = shader;
   }
 
+  inline void setOverrideShader(Shader* shader) {
+      mOverrideShader = shader;
+      for (auto i : mChildren) {
+          i->setOverrideShader(shader);
+      }
+  }
+
   Shader* getShader();
 
   glm::mat4 calcRotationMatrixFromForward(glm::vec3 target);
@@ -109,7 +116,7 @@ protected:
   std::vector<Object*> mChildren;
   Object* mParent;
 
-  Shader* mShader;
+  Shader *mShader, *mOverrideShader;
   
   Object(glm::vec3 position);
   Object(glm::vec3 position, glm::vec3 rotation);

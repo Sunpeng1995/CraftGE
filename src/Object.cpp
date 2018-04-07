@@ -17,7 +17,8 @@ Object::Object(vec3 position, vec3 rotation) :
 
 Object::Object(vec3 position, vec3 rotation, vec3 scale) :
   mPosition(position), mWorldPosition(position),
-  mRotation(rotation), mScale(scale), mParent(nullptr), mShader(nullptr)
+  mRotation(rotation), mScale(scale), mParent(nullptr), 
+  mShader(nullptr), mOverrideShader(nullptr)
 {
   mForward = vec3(0, 0, -1.0f);
   mUp = vec3(0, 1.0f, 0);
@@ -87,6 +88,9 @@ void Object::update(float delta_time) {
 }
 
 Shader* Object::getShader() {
+    if (mOverrideShader != nullptr) {
+        return mOverrideShader;
+    }
     if (mShader == nullptr) {
         if (mParent) {
             return mParent->getShader();

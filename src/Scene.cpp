@@ -196,7 +196,8 @@ void Scene::draw() {
     glBlitFramebuffer(0, 0, mWidth, mHeight, 0, 0, mWidth, mHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    drawLightings();
+    //auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+    //drawLightings(lightingShader);
 
   }
 #ifndef DEBUG
@@ -243,9 +244,18 @@ void Scene::passContextToShader(Shader* shader) {
 }
 
 void Scene::drawMeshes(Shader* shader) {
-    passContextToShader(shader);
 
-    drawMeshes();
+    for (auto m : mMeshes) {
+        m->setOverrideShader(shader);
+        m->draw(this);
+        m->setOverrideShader(nullptr);
+    }
+
+    for (auto m : mModels) {
+        m->setOverrideShader(shader);
+        m->draw(this);
+        m->setOverrideShader(nullptr);
+    }
 }
 
 void Scene::drawMeshes() {
