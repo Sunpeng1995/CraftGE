@@ -499,17 +499,68 @@ void SceneManager::createParticlesAnimateScene() {
     addScene(particle_scene);
 }
 
+void SceneManager::createWaterScene() {
+    auto water_scene = new Scene(mScreenWidth, mScreenHeight, "Water");
+    auto room_shader = new Shader("shader/water/wall.vert", "shader/water/wall.frag");
+    auto water_shader = new Shader("shader/water/water.vert", "shader/water/water.frag");
+
+    Model* wall = new Model("res/models/wall/wall.obj");
+    wall->setPosition(glm::vec3(0, -0.5, -1));
+    wall->setRotation(glm::half_pi<float>(), 0.0f, 0.0f);
+    wall->setShader(room_shader);
+    water_scene->addModel(wall);
+
+    //Model* wall2 = new Model("res/models/wall/wall.obj");
+    //wall2->setPosition(glm::vec3(-1, -0.5, 0));
+    //wall2->setRotation(0, 0, -glm::half_pi<float>());
+    //wall2->setShader(room_shader);
+    //water_scene->addModel(wall2);
+
+    Model* floor = new Model("res/models/floor/floor.obj");
+    floor->setPosition(glm::vec3(0, -1.25, 0));
+    floor->setShader(room_shader);
+    water_scene->addModel(floor);
+
+    //Mesh* water = new Plane(glm::vec3(0));
+    //water->addTexture(Texture("res/textures/water.jpg","texture_diffuse"));
+    //water->setShader(water_shader);
+    //water_scene->addMeshAE(water);
+
+    Model* water = new Model("res/models/water/water.obj");
+    water->setPosition(glm::vec3(0, -1, 0));
+    //water->setRotation(glm::half_pi<float>(), 0.0f, 0.0f);
+    water->setShader(water_shader);
+    water_scene->addMeshAE(water);
+
+    auto light = new DirLight(glm::vec3(-0.2f, -1.0f, -0.3f));
+    water_scene->setDirLight(light);
+
+    auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+
+    auto l = new PointLight(0, glm::vec3(0, 0.5, 0));
+    auto lcube = new Cube(glm::vec3(0, 0.5, 0));
+    lcube->setScale(0.1f);
+    l->setLightMesh(lcube);
+    l->setShader(lightingShader);
+    water_scene->addOtherLight(l);
+
+    water_scene->enableGrabPass();
+
+    addScene(water_scene);
+}
+
 void SceneManager::createAllExampleScenes() {
-  createBasicScene();
-  createLightingScene();
-  createModelScene();
-  createNormalScene();
-  createShadowScene();
-  createPointShadowScene();
+  //createBasicScene();
+  //createLightingScene();
+  //createModelScene();
+  //createNormalScene();
+  //createShadowScene();
+  //createPointShadowScene();
   //createDeferredShadingScene();
   //createFoggedScene();
-  createParticlesScene();
-  createParticlesAnimateScene();
+  //createParticlesScene();
+  //createParticlesAnimateScene();
+  createWaterScene();
 
-  setCurrentScene("Basic");
+  setCurrentScene("Water");
 }

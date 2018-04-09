@@ -1,0 +1,18 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl wall
+Ns 10.0000
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000 
+Ka 0.100000 0.100000 0.100000
+Kd 0.640000 0.640000 0.640000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ka wall_diffuse.jpg
+map_Kd wall_diffuse.jpg
+map_Ks wall_specular.jpg
+map_bump wall_normal.jpg

@@ -33,6 +33,7 @@ public:
   void createFoggedScene();
   void createParticlesScene();
   void createParticlesAnimateScene();
+  void createWaterScene();
 
   void createAllExampleScenes();
 

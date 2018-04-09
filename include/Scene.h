@@ -43,6 +43,7 @@ public:
   void setLightingObject(Mesh* mesh);
   void setSkybox(Skybox* skybox);
   void draw();
+  void drawPass();
   void update();
 
   void setDirLight(DirLight* light);
@@ -52,6 +53,10 @@ public:
   void enableShadow(ShadowType mode);
   void disableShadow();
   void drawToDepthMap();
+
+  void enableGrabPass();
+  void disableGrabPass();
+  void addMeshAE(Object* object);
 
   void passContextToShader(Shader* shader);
 
@@ -104,7 +109,15 @@ private:
   Shader *mPointDepthShader, *mPointShadowShader;
   std::vector<glm::mat4> mPointLightSpaceMatrix;
 
+
+  // GrabPass
+  bool mGrabPassEnable = false, mGrabPassInit = false;
+  GLuint mGrabFBO;
+  GLuint mGrabTexture;
+
+
   std::vector<Object*> mMeshes;
+  std::vector<Object*> mMeshesAfterEffect;
   std::vector<Model*> mModels;
   //Mesh* mLightingObj;
   std::vector<Light*> mLights;
@@ -134,6 +147,7 @@ private:
 
   void drawMeshes(Shader* shader);
   void drawMeshes();
+  void drawMeshesAfterEffect();
   void drawLightings(Shader* shader);
   void drawLightings();
 };

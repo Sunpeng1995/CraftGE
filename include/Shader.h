@@ -44,6 +44,13 @@ public:
   inline void setVec3(const std::string &name, glm::vec3 value) const {
     glUniform3fv(getLocation(ID, name.c_str()), 1, glm::value_ptr(value));
   }
+  inline void setVec2(const std::string &name, float x, float y) const {
+    float v[2] = { x, y };
+    glUniform2fv(getLocation(ID, name.c_str()), 1, v);
+  }
+  inline void setVec2(const std::string &name, glm::vec2 value) const {
+    glUniform2fv(getLocation(ID, name.c_str()), 1, glm::value_ptr(value));
+  }
 
   inline int getLocation(unsigned ID, std::string name) const {
     int id = glGetUniformLocation(ID, name.c_str());

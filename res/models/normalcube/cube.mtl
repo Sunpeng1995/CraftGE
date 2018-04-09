@@ -11,4 +11,5 @@ newmtl cube
   Ke 0.0000 0.0000 0.0000
   map_Ka mofang_color.png
   map_Kd mofang_color.png
+  map_Ks mofang_specular.png
   map_bump mofang_normal.png

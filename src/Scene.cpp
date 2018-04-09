@@ -142,6 +142,24 @@ void Scene::update() {
 }
 
 void Scene::draw() {
+    if (mGrabPassEnable && mGrabPassInit) {
+        glBindFramebuffer(GL_FRAMEBUFFER, mGrabFBO);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        drawPass();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glActiveTexture(GL_TEXTURE31);
+        glBindTexture(GL_TEXTURE_2D, mGrabTexture);
+    }
+    drawPass();
+    drawMeshesAfterEffect();
+}
+
+void Scene::drawPass() {
   // Forward shading
   if (mShadingType == forward) {
 
@@ -228,6 +246,11 @@ void Scene::passContextToShader(Shader* shader) {
 
   shader->setVec3("viewPos", mCamera->getPos());
   shader->setFloat("material.shininess", 32.0f);
+  if (mGrabPassEnable && mGrabPassInit) {
+      shader->setInt("GrabTexture", 31);
+      shader->setFloat("_Time", glfwGetTime());
+      shader->setVec2("GrabTextureSize", mWidth, mHeight);
+  }
 
   if (mDirLight) {
     mDirLight->passToShader(shader);
@@ -493,4 +516,56 @@ void Scene::drawGBufferInQuad() {
   glBindVertexArray(gQuadVAO);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
+}
+
+void Scene::enableGrabPass() {
+    mGrabPassEnable = true;
+    if (mGrabPassInit) {
+        return;
+    }
+
+    glGenFramebuffers(1, &mGrabFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, mGrabFBO);
+
+    glGenTextures(1, &mGrabTexture);
+    glBindTexture(GL_TEXTURE_2D, mGrabTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGrabTexture, 0);
+
+    GLuint RBO;
+    glGenRenderbuffers(1, &RBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mWidth, mHeight);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "ERROR::FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return;
+    }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+    mGrabPassInit = true;
+}
+
+void Scene::disableGrabPass() {
+    mGrabPassEnable = false;
+}
+
+void Scene::drawMeshesAfterEffect() {
+    for (auto i : mMeshesAfterEffect) {
+        i->draw(this);
+    }
+}
+
+void Scene::addMeshAE(Object* object) {
+    mMeshesAfterEffect.push_back(object);
 }

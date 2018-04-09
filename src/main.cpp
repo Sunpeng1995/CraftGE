@@ -70,7 +70,6 @@ int main() {
 
   SceneManager::getInstance()->setScreenSize(sWidth, sHeight);
   SceneManager::getInstance()->createAllExampleScenes();
-  SceneManager::getInstance()->setCurrentScene("Basic");
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
@@ -157,7 +156,7 @@ void processInput(GLFWwindow* window) {
     SceneManager::getInstance()->setCurrentScene("Deferred");
   }
   if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
-    SceneManager::getInstance()->setCurrentScene("Fogged");
+    SceneManager::getInstance()->setCurrentScene("Water");
   }
   if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
       SceneManager::getInstance()->setCurrentScene("Particles");
