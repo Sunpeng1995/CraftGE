@@ -1,5 +1,9 @@
 #include "Shader.h"
 
+Shader::Shader() : Shader("shader/simple.vert", "shader/simple.frag") 
+{
+}
+
 Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) :
   Shader(vertexPath, NULL, fragmentPath)
 {

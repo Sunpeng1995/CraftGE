@@ -1,11 +1,9 @@
 #include "Scene.h"
 
-Scene::Scene(int width, int height, ShadingType st) : 
-  mWidth(width), mHeight(height), mShadingType(st) {
+Scene::Scene(int width, int height, std::string scene_name, ShadingType st) : 
+  mWidth(width), mHeight(height), mShadingType(st), mName(scene_name) {
   mCamera = new Camera(width, height);
-  mShader = new Shader("shader/simple.vert", "shader/simple.frag");
   mSkybox = nullptr;
-  mLightingShader = nullptr;
   mDepthShader = nullptr;
   mShadowShader = nullptr;
   mPointDepthShader = nullptr;
@@ -61,7 +59,6 @@ Scene::Scene(int width, int height, ShadingType st) :
 
 Scene::~Scene() {
   delete mCamera;
-  delete mShader;
 
   for (int i = 0; i < mMeshes.size(); i++) {
     delete mMeshes[i];
@@ -69,6 +66,10 @@ Scene::~Scene() {
   for (int i = 0; i < mLights.size(); i++) {
     delete mLights[i];
   }
+}
+
+void Scene::addObject(Object* object) {
+    mMeshes.push_back(object);
 }
 
 void Scene::addMesh(Mesh* mesh) {
@@ -79,20 +80,12 @@ void Scene::addModel(Model* model) {
   mModels.push_back(model);
 }
 
+void Scene::addOtherTextures(Texture tex) {
+  mOtherTextures.push_back(tex);
+}
+
 void Scene::setLightingObject(Mesh* mesh) {
   //mLightingObj = mesh;
-}
-
-void Scene::setObjectShader(Shader* shader) {
-  Shader* oldShader = mShader;
-  mShader = shader;
-  if (oldShader) delete oldShader;
-}
-
-void Scene::setLightingShader(Shader* shader) {
-  Shader* oldShader = mLightingShader;
-  mLightingShader = shader;
-  if (oldShader) delete oldShader;
 }
 
 void Scene::setDirLight(DirLight* light) {
@@ -118,27 +111,59 @@ void Scene::addOtherLight(Light* light) {
 }
 
 void Scene::update() {
-  if (mCamera) mCamera->update();
+  if (lastTime == 0) {
+    lastTime = glfwGetTime();
+    lastRecordTime = lastTime;
+  }
+  currentTime = glfwGetTime();
+  delta_time = currentTime - lastRecordTime;
+  lastRecordTime = currentTime;
+  fps++;
+  if (currentTime - lastTime >= 1.0f) {
+    std::cout << fps << "frame per second" << std::endl;
+    fps = 0;
+    lastTime = currentTime;
+  }
 
-  if (mDirLight) mDirLight->update();
-  if (mFlashLight) mFlashLight->update();
+  if (mCamera) mCamera->update(delta_time);
+
+  if (mDirLight) mDirLight->update(delta_time);
+  if (mFlashLight) mFlashLight->update(delta_time);
   for (auto i : mLights) {
-    i->update();
+    i->update(delta_time);
   }
 
   for (auto i : mMeshes) {
-    i->update();
+    i->update(delta_time);
   }
   for (auto i : mModels) {
-    i->update();
+    i->update(delta_time);
   }
 }
 
 void Scene::draw() {
+    if (mGrabPassEnable && mGrabPassInit) {
+        glBindFramebuffer(GL_FRAMEBUFFER, mGrabFBO);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        drawPass();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glActiveTexture(GL_TEXTURE31);
+        glBindTexture(GL_TEXTURE_2D, mGrabTexture);
+    }
+    drawPass();
+    drawMeshesAfterEffect();
+}
+
+void Scene::drawPass() {
   // Forward shading
   if (mShadingType == forward) {
 
-  drawLightings(mLightingShader);
+  drawLightings();
 
     if (shadowEnable) {
       drawToDepthMap();
@@ -159,7 +184,7 @@ void Scene::draw() {
       drawMeshes(mPointShadowShader);
     }
     if (!pointShadowEnable && !shadowEnable) {
-      drawMeshes(mShader);
+      drawMeshes();
     }
   }
 
@@ -189,7 +214,8 @@ void Scene::draw() {
     glBlitFramebuffer(0, 0, mWidth, mHeight, 0, 0, mWidth, mHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    drawLightings(mLightingShader);
+    //auto lightingShader = new Shader("shader/lighting.vert", "shader/lighting.frag");
+    //drawLightings(lightingShader);
 
   }
 #ifndef DEBUG
@@ -209,26 +235,22 @@ void Scene::draw() {
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
 #endif // DEBUG
-
-  if (lastTime == 0) {
-    lastTime = glfwGetTime();
-  }
-  currentTime = glfwGetTime();
-  fps++;
-  if (currentTime - lastTime >= 1.0f) {
-    std::cout << fps << "frame per second" << std::endl;
-    fps = 0;
-    lastTime = currentTime;
-  }
 }
 
-void Scene::drawMeshes(Shader* shader) {
+void Scene::passContextToShader(Shader* shader) {
   shader->use();
   shader->setMat4("view", mCamera->view());
   shader->setMat4("projection", mCamera->projection());
+  shader->setVec3("camera_right", mCamera->getRight());
+  shader->setVec3("camera_up", mCamera->getUp());
 
   shader->setVec3("viewPos", mCamera->getPos());
   shader->setFloat("material.shininess", 32.0f);
+  if (mGrabPassEnable && mGrabPassInit) {
+      shader->setInt("GrabTexture", 31);
+      shader->setFloat("_Time", glfwGetTime());
+      shader->setVec2("GrabTextureSize", mWidth, mHeight);
+  }
 
   if (mDirLight) {
     mDirLight->passToShader(shader);
@@ -242,26 +264,48 @@ void Scene::drawMeshes(Shader* shader) {
     mFlashLight->updateFlashLight(mCamera->getPos(), mCamera->getFront());
     mFlashLight->passToShader(shader);
   }
+}
 
+void Scene::drawMeshes(Shader* shader) {
+
+    for (auto m : mMeshes) {
+        m->setOverrideShader(shader);
+        m->draw(this);
+        m->setOverrideShader(nullptr);
+    }
+
+    for (auto m : mModels) {
+        m->setOverrideShader(shader);
+        m->draw(this);
+        m->setOverrideShader(nullptr);
+    }
+}
+
+void Scene::drawMeshes() {
   for (auto m : mMeshes) {
-    m->draw(shader);
+    m->draw(this);
   }
 
   for (auto m : mModels) {
-    m->draw(shader);
+    m->draw(this);
   }
 }
 
 void Scene::drawLightings(Shader* shader) {
   if (!shader) return;
-  shader->use();
-  shader->setMat4("view", mCamera->view());
-  shader->setMat4("projection", mCamera->projection());
+  //shader->use();
+  //shader->setMat4("view", mCamera->view());
+  //shader->setMat4("projection", mCamera->projection());
+
+  passContextToShader(shader);
 
   //mLightingObj->draw(shader);
+  drawLightings();
+}
+
+void Scene::drawLightings() {
   for (auto l : mLights) {
-    shader->setVec3("color", l->getColor());
-    l->draw(shader);
+    l->draw(this);
   }
 }
 
@@ -456,6 +500,15 @@ void Scene::drawGBufferInQuad() {
   gLightingShader->setInt("gNormal", 1);
   gLightingShader->setInt("gAlbedoSpec", 2);
   gLightingShader->setVec3("viewPos", mCamera->getPos());
+  gLightingShader->setFloat("utime", glfwGetTime() / 20);
+  for (int i = 0; i < mOtherTextures.size(); i++) {
+    glActiveTexture(GL_TEXTURE0 + 4 + i);
+    glBindTexture(GL_TEXTURE_2D, mOtherTextures[i].getTextureID());
+    gLightingShader->setInt(mOtherTextures[i].getName(), 4 + i);
+  }
+  if (mDirLight) {
+    mDirLight->passToShader(gLightingShader);
+  }
   for (auto l : mLights) {
     l->passToShader(gLightingShader);
   }
@@ -463,4 +516,56 @@ void Scene::drawGBufferInQuad() {
   glBindVertexArray(gQuadVAO);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
+}
+
+void Scene::enableGrabPass() {
+    mGrabPassEnable = true;
+    if (mGrabPassInit) {
+        return;
+    }
+
+    glGenFramebuffers(1, &mGrabFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, mGrabFBO);
+
+    glGenTextures(1, &mGrabTexture);
+    glBindTexture(GL_TEXTURE_2D, mGrabTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGrabTexture, 0);
+
+    GLuint RBO;
+    glGenRenderbuffers(1, &RBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mWidth, mHeight);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "ERROR::FRAMEBUFFER:: framebuffer is not complete!" << std::endl;
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return;
+    }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+    mGrabPassInit = true;
+}
+
+void Scene::disableGrabPass() {
+    mGrabPassEnable = false;
+}
+
+void Scene::drawMeshesAfterEffect() {
+    for (auto i : mMeshesAfterEffect) {
+        i->draw(this);
+    }
+}
+
+void Scene::addMeshAE(Object* object) {
+    mMeshesAfterEffect.push_back(object);
 }

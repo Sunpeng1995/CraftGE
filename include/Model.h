@@ -16,14 +16,23 @@ class Model : public Object {
 public:
   Model(char* path);
   //Model(Mesh* mesh);
-  virtual void draw(Shader* shader);
+  virtual void draw(Scene* context);
 
   void saveToShared(std::string path);
   void loadFromShared(std::string path);
 
+  void setOpaque(bool is_opaque) {
+      mIsOpaque = is_opaque;
+  }
+  void setCullFace(bool cull_face) {
+      mIsCullFace = cull_face;
+  }
+
 private:
   std::vector<Texture> mTextureLoaded;
   std::string directory;
+
+  bool mIsOpaque, mIsCullFace;
 
   void loadModel(std::string path);
   void processNode(aiNode* node, const aiScene* scene);

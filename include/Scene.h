@@ -28,7 +28,7 @@ public:
   };
 
 
-  Scene(int width, int height, ShadingType st = forward);
+  Scene(int width, int height, std::string scene_name, ShadingType st = forward);
   virtual ~Scene();
 
   inline void updateScreen(int width, int height) {
@@ -36,13 +36,14 @@ public:
     mHeight = height;
   }
 
+  void addObject(Object* object);
   void addMesh(Mesh* mesh);
   void addModel(Model* model);
+  void addOtherTextures(Texture tex);
   void setLightingObject(Mesh* mesh);
-  void setObjectShader(Shader* shader);
-  void setLightingShader(Shader* shader);
   void setSkybox(Skybox* skybox);
   void draw();
+  void drawPass();
   void update();
 
   void setDirLight(DirLight* light);
@@ -53,8 +54,18 @@ public:
   void disableShadow();
   void drawToDepthMap();
 
+  void enableGrabPass();
+  void disableGrabPass();
+  void addMeshAE(Object* object);
+
+  void passContextToShader(Shader* shader);
+
   inline Camera& getCamera() {
     return *mCamera;
+  }
+
+  inline Camera* getCameraPointer() {
+      return mCamera;
   }
 
   inline void setLineModeOn() {
@@ -69,13 +80,17 @@ public:
     enableFlashLight = enable;
   }
 
+  inline std::string getName() {
+    return mName;
+  }
+
 private:
   ShadingType mShadingType;
+  std::string mName;
 
   bool enableFlashLight = true;
   int mWidth, mHeight;
   Camera* mCamera;
-  Shader* mShader, *mLightingShader;
   Skybox* mSkybox;
 
   // Shadow
@@ -94,10 +109,19 @@ private:
   Shader *mPointDepthShader, *mPointShadowShader;
   std::vector<glm::mat4> mPointLightSpaceMatrix;
 
-  std::vector<Mesh*> mMeshes;
+
+  // GrabPass
+  bool mGrabPassEnable = false, mGrabPassInit = false;
+  GLuint mGrabFBO;
+  GLuint mGrabTexture;
+
+
+  std::vector<Object*> mMeshes;
+  std::vector<Object*> mMeshesAfterEffect;
   std::vector<Model*> mModels;
   //Mesh* mLightingObj;
   std::vector<Light*> mLights;
+  std::vector<Texture> mOtherTextures;
   DirLight* mDirLight;
   SpotLight* mFlashLight;
 
@@ -113,6 +137,7 @@ private:
 
   int fps = 0;
   double lastTime = 0, currentTime;
+  double delta_time, lastRecordTime;
 
   //Debug
 #ifdef DEBUG
@@ -121,7 +146,10 @@ private:
 #endif // DEBUG
 
   void drawMeshes(Shader* shader);
+  void drawMeshes();
+  void drawMeshesAfterEffect();
   void drawLightings(Shader* shader);
+  void drawLightings();
 };
 
 #endif // !__SCENE_H__

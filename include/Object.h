@@ -7,11 +7,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
+#include "Shader.h"
 #include "ModelManager.h"
 
-class Shader;
+class Scene;
 
 class Object {
 public:
@@ -77,10 +79,23 @@ public:
     mParent = parent;
   }
 
+  inline void setShader(Shader* shader) {
+      mShader = shader;
+  }
+
+  inline void setOverrideShader(Shader* shader) {
+      mOverrideShader = shader;
+      for (auto i : mChildren) {
+          i->setOverrideShader(shader);
+      }
+  }
+
+  Shader* getShader();
+
   glm::mat4 calcRotationMatrixFromForward(glm::vec3 target);
 
-  virtual void draw(Shader* shader) = 0;
-  virtual void update();
+  virtual void draw(Scene* context) = 0;
+  virtual void update(float delta_time);
   virtual shared_model_data* packSharedData() { return nullptr; }
 
 protected:
@@ -100,6 +115,8 @@ protected:
 
   std::vector<Object*> mChildren;
   Object* mParent;
+
+  Shader *mShader, *mOverrideShader;
   
   Object(glm::vec3 position);
   Object(glm::vec3 position, glm::vec3 rotation);

@@ -1,8 +1,10 @@
 #include "Model.h"
 
+#include "Scene.h"
+
 using namespace glm;
 
-Model::Model(char* path) : Object(vec3(0.0f)) {
+Model::Model(char* path) : Object(vec3(0.0f)), mIsOpaque(true), mIsCullFace(true) {
   if (ModelManager::getInstance()->isModelLoaded(path)) {
     loadFromShared(path);
   }
@@ -12,19 +14,25 @@ Model::Model(char* path) : Object(vec3(0.0f)) {
   }
 }
 
-//Model::Model(Mesh* mesh) {
-//  mScale = mesh->getScale();
-//  mesh->setScale(1.0f);
-//  mPosition = mesh->getPos();
-//  mesh->setPos(glm::vec3(0.0f, 0.0f, 0.0f));
-//  mMeshes.push_back(*mesh);
-//  delete mesh;
-//}
+void Model::draw(Scene* context) {
+    context->passContextToShader(getShader());
+    if (!mIsOpaque) {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    if (!mIsCullFace) {
+        glDisable(GL_CULL_FACE);
+    }
 
-void Model::draw(Shader* shader) {
   for (auto i : mChildren) {
-    i->draw(shader);
+    i->draw(context);
   }
+
+    if (!mIsOpaque) {
+        glBlendFunc(GL_ONE, GL_ZERO);
+    }
+    if (!mIsCullFace) {
+        glEnable(GL_CULL_FACE);
+    }
 }
 
 void Model::saveToShared(std::string path) {
@@ -137,15 +145,16 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     aiString str;
     mat->GetTexture(type, i, &str);
     bool skip = false;
+    std::string complete_path = directory + "/" + std::string(str.C_Str());
     for (int i = 0; i < mTextureLoaded.size(); i++) {
-      if (strcmp(mTextureLoaded[i].getPath().c_str(), str.C_Str()) == 0) {
+      if (mTextureLoaded[i].getPath() == complete_path) {
         textures.push_back(mTextureLoaded[i]);
         skip = true;
         break;
       }
     }
     if (!skip) {
-      Texture t(directory + "/" + std::string(str.C_Str()), typeName);
+      Texture t(complete_path, typeName);
       textures.push_back(t);
       mTextureLoaded.push_back(t);
     }

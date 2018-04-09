@@ -1,0 +1,17 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl water
+Ns 10.0000
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000 
+Ka 0.100000 0.100000 0.100000
+Kd 0.640000 0.640000 0.640000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ka water.jpg
+map_Kd water.jpg
+map_bump water_noise.png

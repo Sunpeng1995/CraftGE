@@ -25,15 +25,23 @@ struct Vertex {
 class Mesh :public Object {
 public:
   Mesh();
-  Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+  Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures, int render_layer = 0);
   Mesh(shared_model_data* data);
-  virtual void draw(Shader* shader);
+  virtual void draw(Scene* context);
   void addTexture(Texture tex);
 
   void setPos(glm::vec3 pos);
 
+  inline int getRenderLayer() {
+      return mRenderLayer;
+  }
+
   inline glm::vec3 getPos() {
     return mPosition;
+  }
+
+  bool operator<(Mesh &that) {
+      return this->mRenderLayer < that.getRenderLayer();
   }
 
   virtual shared_model_data* packSharedData();
@@ -45,13 +53,14 @@ protected:
 private:
   unsigned int mVAO, mVBO, mEBO;
   size_t mIndicesCount;
+  int mRenderLayer;
 };
 
 class Cube : public Mesh {
 public:
   Cube();
   Cube(glm::vec3 pos);
-  virtual void draw(Shader* shader);
+  virtual void draw(Scene* context);
 
 private:
   GLuint mVAO;
@@ -64,7 +73,7 @@ public:
   NormalledCube();
   NormalledCube(glm::vec3 pos);
 
-  virtual void draw(Shader* shader);
+  virtual void draw(Scene* context);
   void setReverse(bool r) {
     mReverse = r;
   }
@@ -80,7 +89,7 @@ public:
   Plane();
   Plane(glm::vec3 pos);
 
-  virtual void draw(Shader* shader);
+  virtual void draw(Scene* context);
 private:
   GLuint mVAO;
 };

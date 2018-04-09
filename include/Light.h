@@ -17,7 +17,7 @@ public:
   Light();
   Light(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
   virtual void passToShader(Shader* shader) = 0;
-  virtual void draw(Shader* shader) = 0;
+  virtual void draw(Scene* context) = 0;
   void setLightMesh(Mesh* mesh);
 
   void setAmbient(glm::vec3 ambient);
@@ -42,7 +42,7 @@ public:
   DirLight(glm::vec3 direction);
   DirLight(glm::vec3 direction, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
   virtual void passToShader(Shader* shader);
-  virtual void draw(Shader* shader);
+  virtual void draw(Scene* context);
 
   void setDirection(glm::vec3 direction);
   void setDirection(float x, float y, float z);
@@ -59,7 +59,7 @@ public:
   PointLight(int id, glm::vec3 position, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
     float constant, float linear, float quadratic);
   virtual void passToShader(Shader* shader);
-  virtual void draw(Shader* shader);
+  virtual void draw(Scene* context);
 
   void setConstant(float constant);
   void setLinear(float linear);
@@ -78,7 +78,7 @@ public:
   SpotLight(int id, glm::vec3 position, glm::vec3 direction, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
     float cutoff, float outercutoff);
   virtual void passToShader(Shader* shader);
-  virtual void draw(Shader* shader);
+  virtual void draw(Scene* context);
   void updateFlashLight(glm::vec3 position, glm::vec3 direction);
 
   void setDirection(glm::vec3 dir);

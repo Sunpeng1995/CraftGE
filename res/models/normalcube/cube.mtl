@@ -1,0 +1,15 @@
+newmtl cube
+  Ns 10.0000
+  Ni 1.5000
+  d 1.0000
+  Tr 0.0000
+  Tf 1.0000 1.0000 1.0000 
+  illum 2
+  Ka 0.1000 0.1000 0.1000
+  Kd 0.5880 0.5880 0.5880
+  Ks 1.0000 1.0000 1.0000
+  Ke 0.0000 0.0000 0.0000
+  map_Ka mofang_color.png
+  map_Kd mofang_color.png
+  map_Ks mofang_specular.png
+  map_bump mofang_normal.png

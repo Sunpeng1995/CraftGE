@@ -17,11 +17,16 @@ Object::Object(vec3 position, vec3 rotation) :
 
 Object::Object(vec3 position, vec3 rotation, vec3 scale) :
   mPosition(position), mWorldPosition(position),
-  mRotation(rotation), mScale(scale), mParent(nullptr)
+  mRotation(rotation), mScale(scale), mParent(nullptr), 
+  mShader(nullptr), mOverrideShader(nullptr)
 {
   mForward = vec3(0, 0, -1.0f);
   mUp = vec3(0, 1.0f, 0);
   mRight = normalize(cross(mForward, mUp));
+
+  mRotationMatrix = glm::mat4(1.0f);
+  mModelMatrix = glm::mat4(1.0f);
+  mParentModelMatrix = glm::mat4(1.0f);
 
   calcModelMatrix();
 }
@@ -39,13 +44,13 @@ void Object::addChild(Object* child) {
 mat4 Object::calcRotationMatrixFromForward(vec3 target) {
   vec3 v = cross(mForward, target);
   float angle = glm::acos(dot(mForward, target) / (length(mForward) * length(target)));
-  return rotate(mat4(), angle, v);
+  return rotate(mat4(1.0f), angle, v);
 }
 
 void Object::calcModelMatrix() {
   mRotationMatrix = eulerAngleXYZ(mRotation.x, mRotation.y, mRotation.z);
 
-  mModelMatrix = translate(mat4(), mPosition);
+  mModelMatrix = translate(mat4(1.0f), mPosition);
   mModelMatrix = mModelMatrix * mRotationMatrix;
   mModelMatrix = glm::scale(mModelMatrix, mScale);
 
@@ -73,11 +78,26 @@ void Object::updateFromParent() {
   }
 }
 
-void Object::update() {
+void Object::update(float delta_time) {
   if (updateFunc) {
     updateFunc(this);
   }
   for (auto i : mChildren) {
-    i->update();
+    i->update(delta_time);
   }
+}
+
+Shader* Object::getShader() {
+    if (mOverrideShader != nullptr) {
+        return mOverrideShader;
+    }
+    if (mShader == nullptr) {
+        if (mParent) {
+            return mParent->getShader();
+        }
+        else {
+            return nullptr;
+        }
+    }
+    return mShader;
 }
